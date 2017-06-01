@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/SayehCompiler.iml" filepath="$PROJECT_DIR$/.idea/modules/SayehCompiler.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator.iml" group="code-generator" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator_main.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator_main.iml" group="code-generator" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator_test.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator_test.iml" group="code-generator" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/domain-layer/domain-layer.iml" filepath="$PROJECT_DIR$/.idea/modules/domain-layer/domain-layer.iml" group="domain-layer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/domain-layer/domain-layer_main.iml" filepath="$PROJECT_DIR$/.idea/modules/domain-layer/domain-layer_main.iml" group="domain-layer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/domain-layer/domain-layer_test.iml" filepath="$PROJECT_DIR$/.idea/modules/domain-layer/domain-layer_test.iml" group="domain-layer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/lexical-analyzer/lexical-analyzer.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/lexical-analyzer/lexical-analyzer.iml" group="lexical-analyzer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/lexical-analyzer/lexical-analyzer_main.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/lexical-analyzer/lexical-analyzer_main.iml" group="lexical-analyzer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/lexical-analyzer/lexical-analyzer_test.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/lexical-analyzer/lexical-analyzer_test.iml" group="lexical-analyzer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/presentation-layer/presentation-layer.iml" filepath="$PROJECT_DIR$/.idea/modules/presentation-layer/presentation-layer.iml" group="presentation-layer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/presentation-layer/presentation-layer_main.iml" filepath="$PROJECT_DIR$/.idea/modules/presentation-layer/presentation-layer_main.iml" group="presentation-layer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/presentation-layer/presentation-layer_test.iml" filepath="$PROJECT_DIR$/.idea/modules/presentation-layer/presentation-layer_test.iml" group="presentation-layer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/semantic-analyzer/semantic-analyzer.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/semantic-analyzer/semantic-analyzer.iml" group="semantic-analyzer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/semantic-analyzer/semantic-analyzer_main.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/semantic-analyzer/semantic-analyzer_main.iml" group="semantic-analyzer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/semantic-analyzer/semantic-analyzer_test.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/semantic-analyzer/semantic-analyzer_test.iml" group="semantic-analyzer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/syntax-analyzer/syntax-analyzer.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/syntax-analyzer/syntax-analyzer.iml" group="syntax-analyzer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/syntax-analyzer/syntax-analyzer_main.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/syntax-analyzer/syntax-analyzer_main.iml" group="syntax-analyzer" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/syntax-analyzer/syntax-analyzer_test.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/syntax-analyzer/syntax-analyzer_test.iml" group="syntax-analyzer" />
+    </modules>
+  </component>
+</project>

@@ -1,0 +1,31 @@
+allprojects {
+
+    group 'com.mohamadamin.sayehcompiler'
+    version '1.0-SNAPSHOT'
+
+    apply plugin: 'idea'
+
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+}
+
+buildscript {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:1.0.1"
+    }
+}
+
+subprojects {
+    apply plugin: 'kotlin'
+    dependencies {
+        compile "org.jetbrains.kotlin:kotlin-stdlib:1.0.1"
+        testCompile 'junit:junit:4.12'
+    }
+}

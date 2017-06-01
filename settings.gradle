@@ -1,0 +1,16 @@
+include 'presentation-layer', 'domain-layer',
+        'computation-layer/lexical-analyzer',
+        'computation-layer/syntax-analyzer',
+        'computation-layer/semantic-analyzer',
+        'computation-layer/code-generator'
+
+rootProject.children.each { project ->
+    if (project.name.startsWith("computation-layer/")) {
+        int slash = project.name.indexOf("/")
+        project.name = project.name.substring(slash + 1)
+    }
+}
+include 'syntax-analyzer'
+include 'semantic-analyzer'
+include 'code-generator'
+
