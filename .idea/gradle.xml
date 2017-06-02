@@ -30,6 +30,10 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/computation-layer/code-generator" />
+            <option value="$PROJECT_DIR$/computation-layer/lexical-analyzer" />
+            <option value="$PROJECT_DIR$/computation-layer/semantic-analyzer" />
+            <option value="$PROJECT_DIR$/computation-layer/syntax-analyzer" />
             <option value="$PROJECT_DIR$/domain-layer" />
             <option value="$PROJECT_DIR$/presentation-layer" />
           </set>
