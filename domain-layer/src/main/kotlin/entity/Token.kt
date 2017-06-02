@@ -84,58 +84,75 @@ object TokenConstants {
 
 }
 
-sealed class Token(protected val value: String)
-    sealed class Keyword(value: String) : Token(value)
-        class IF(): Keyword(TokenConstants.Keyword.IF)
-        class ELSE(): Keyword(TokenConstants.Keyword.ELSE)
-        class WHILE(): Keyword(TokenConstants.Keyword.WHILE)
-        class INT(): Keyword(TokenConstants.Keyword.INT)
-        class CHAR(): Keyword(TokenConstants.Keyword.CHAR)
-        class BOOL(): Keyword(TokenConstants.Keyword.BOOL)
-        class NULL(): Keyword(TokenConstants.Keyword.NULL)
-        class TRUE(): Keyword(TokenConstants.Keyword.TRUE)
-        class FALSE(): Keyword(TokenConstants.Keyword.FALSE)
-    sealed class Operator(value: String): Token(value)
-        sealed class AssignmentOperator(value: String): Operator(value)
-            class Assign(): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.Assign)
-            class PlusAssign(): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.PlusAssign)
-            class MinusAssign(): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.MinusAssign)
-            class MultiplyAssign(): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.MultiplyAssign)
-            class DivideAssign(): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.DivideAssign)
-            class ModuloAssign(): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.ModuloAssign)
-        sealed class LogicalOperator(value: String): Operator(value)
-            class AndOperator(): LogicalOperator(TokenConstants.Operator.LogicalOperator.And)
-            class OrOperator(): LogicalOperator(TokenConstants.Operator.LogicalOperator.Or)
-            class NotOperator(): LogicalOperator(TokenConstants.Operator.LogicalOperator.Not)
-        sealed class RelationalOperator(value: String): Operator(value)
-            class Equal(): RelationalOperator(TokenConstants.Operator.RelationalOperator.Equal)
-            class NotEqual(): RelationalOperator(TokenConstants.Operator.RelationalOperator.NotEqual)
-            class Bigger(): RelationalOperator(TokenConstants.Operator.RelationalOperator.Bigger)
-            class Smaller(): RelationalOperator(TokenConstants.Operator.RelationalOperator.Smaller)
-            class BiggerEqual(): RelationalOperator(TokenConstants.Operator.RelationalOperator.BiggerEqual)
-            class SmallerEqual(): RelationalOperator(TokenConstants.Operator.RelationalOperator.SmallerEqual)
-        sealed class ArithmeticOperator(value: String): Operator(value)
-            class Plus(): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Plus)
-            class Minus(): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Minus)
-            class Multiply(): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Multiply)
-            class Divide(): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Divide)
-            class PlusPlus(): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.PlusPlus)
-            class MinusMinus(): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.MinusMinus)
-    sealed class Punctuation(value: String): Token(value)
-        class Comma(): Punctuation(TokenConstants.Punctuation.Comma)
-        class ParenthesisOpen(): Punctuation(TokenConstants.Punctuation.ParenthesisOpen)
-        class ParenthesisClose(): Punctuation(TokenConstants.Punctuation.ParenthesisClose)
-        class BraceOpen(): Punctuation(TokenConstants.Punctuation.BraceOpen)
-        class BraceClose(): Punctuation(TokenConstants.Punctuation.BraceClose)
-        class Colon(): Punctuation(TokenConstants.Punctuation.Colon)
-        class Semicolon(): Punctuation(TokenConstants.Punctuation.Semicolon)
-    class Identifier(value: String): Token(value)
-    class Number(var number: String): Token(if (number.first().isDigit()) "+" + number else number) {
+sealed class Token(protected val value: String, val line: Int)
+
+    sealed class Keyword(value: String, line: Int) : Token(value, line)
+
+        class IF(line: Int): Keyword(TokenConstants.Keyword.IF, line)
+        class ELSE(line: Int): Keyword(TokenConstants.Keyword.ELSE, line)
+        class WHILE(line: Int): Keyword(TokenConstants.Keyword.WHILE, line)
+        class INT(line: Int): Keyword(TokenConstants.Keyword.INT, line)
+        class CHAR(line: Int): Keyword(TokenConstants.Keyword.CHAR, line)
+        class BOOL(line: Int): Keyword(TokenConstants.Keyword.BOOL, line)
+        class NULL(line: Int): Keyword(TokenConstants.Keyword.NULL, line)
+        class TRUE(line: Int): Keyword(TokenConstants.Keyword.TRUE, line)
+        class FALSE(line: Int): Keyword(TokenConstants.Keyword.FALSE, line)
+
+    sealed class Operator(value: String, line: Int): Token(value, line)
+
+        sealed class AssignmentOperator(value: String, line: Int): Operator(value, line)
+
+            class Assign(line: Int): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.Assign, line)
+            class PlusAssign(line: Int): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.PlusAssign, line)
+            class MinusAssign(line: Int): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.MinusAssign, line)
+            class MultiplyAssign(line: Int): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.MultiplyAssign, line)
+            class DivideAssign(line: Int): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.DivideAssign, line)
+            class ModuloAssign(line: Int): AssignmentOperator(TokenConstants.Operator.AssignmentOperator.ModuloAssign, line)
+
+        sealed class LogicalOperator(value: String, line: Int): Operator(value, line)
+
+            class AndOperator(line: Int): LogicalOperator(TokenConstants.Operator.LogicalOperator.And, line)
+            class OrOperator(line: Int): LogicalOperator(TokenConstants.Operator.LogicalOperator.Or, line)
+            class NotOperator(line: Int): LogicalOperator(TokenConstants.Operator.LogicalOperator.Not, line)
+
+        sealed class RelationalOperator(value: String, line: Int): Operator(value, line)
+
+            class Equal(line: Int): RelationalOperator(TokenConstants.Operator.RelationalOperator.Equal, line)
+            class NotEqual(line: Int): RelationalOperator(TokenConstants.Operator.RelationalOperator.NotEqual, line)
+            class Bigger(line: Int): RelationalOperator(TokenConstants.Operator.RelationalOperator.Bigger, line)
+            class Smaller(line: Int): RelationalOperator(TokenConstants.Operator.RelationalOperator.Smaller, line)
+            class BiggerEqual(line: Int): RelationalOperator(TokenConstants.Operator.RelationalOperator.BiggerEqual, line)
+            class SmallerEqual(line: Int): RelationalOperator(TokenConstants.Operator.RelationalOperator.SmallerEqual, line)
+
+        sealed class ArithmeticOperator(value: String, line: Int): Operator(value, line)
+
+            class Plus(line: Int): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Plus, line)
+            class Minus(line: Int): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Minus, line)
+            class Multiply(line: Int): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Multiply, line)
+            class Divide(line: Int): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Divide, line)
+            class PlusPlus(line: Int): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.PlusPlus, line)
+            class MinusMinus(line: Int): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.MinusMinus, line)
+
+    sealed class Punctuation(value: String, line: Int): Token(value, line)
+
+        class Comma(line: Int): Punctuation(TokenConstants.Punctuation.Comma, line)
+        class ParenthesisOpen(line: Int): Punctuation(TokenConstants.Punctuation.ParenthesisOpen, line)
+        class ParenthesisClose(line: Int): Punctuation(TokenConstants.Punctuation.ParenthesisClose, line)
+        class BraceOpen(line: Int): Punctuation(TokenConstants.Punctuation.BraceOpen, line)
+        class BraceClose(line: Int): Punctuation(TokenConstants.Punctuation.BraceClose, line)
+        class Colon(line: Int): Punctuation(TokenConstants.Punctuation.Colon, line)
+        class Semicolon(line: Int): Punctuation(TokenConstants.Punctuation.Semicolon, line)
+
+    class Number(val name: String, var number: String, var registerAddress: Int, var memoryAddress: Int, line: Int):
+            Token(if (number[0].isDigit()) "+" + number else number, line) {
+
         init {
-            if (number.first().isDigit()) {
+            if (number[0].isDigit()) {
                 number = "+" + number
             }
         }
+
     }
-    class Character(val char: String): Token(char)
-    class Unknown(val text: String): Token(text)
+    class Identifier(val name: String, var registerAddress: Int, var memoryAddress: Int, line: Int): Token(name, line)
+    class Character(val char: String, line: Int): Token(char, line)
+    class Unknown(val text: String, line: Int): Token(text, line)

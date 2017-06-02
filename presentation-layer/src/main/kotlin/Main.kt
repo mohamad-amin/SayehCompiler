@@ -1,5 +1,4 @@
 import entity.*
-import entity.token.*
 
 /**
  * Created by mohamadamin (torpedo.mohammadi@gmail.com) on 6/2/17.
@@ -7,7 +6,7 @@ import entity.token.*
 
 fun main(args: Array<String>) {
 
-    val token: Token = Plus("")
+    val token: Token = Plus(0)
 
     when (token) {
         is Unknown -> {
