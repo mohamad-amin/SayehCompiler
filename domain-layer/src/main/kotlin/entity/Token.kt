@@ -144,15 +144,7 @@ sealed class Token(protected val value: String, val line: Int)
         class Semicolon(line: Int): Punctuation(TokenConstants.Punctuation.Semicolon, line)
 
     class Number(val name: String, var number: String, var registerAddress: Int, var memoryAddress: Int, line: Int):
-            Token(if (number[0].isDigit()) "+" + number else number, line) {
-
-        init {
-            if (number[0].isDigit()) {
-                number = "+" + number
-            }
-        }
-
-    }
+            Token(if (number[0].isDigit()) "+" + number else number, line)
     class Identifier(val name: String, var registerAddress: Int, var memoryAddress: Int, line: Int): Token(name, line)
     class Character(val char: String, line: Int): Token(char, line)
     class Unknown(val text: String, line: Int): Token(text, line)

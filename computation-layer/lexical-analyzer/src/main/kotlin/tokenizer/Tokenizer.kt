@@ -1,4 +1,4 @@
-package tokenize
+package tokenizer
 
 import entity.Token
 import entity.Word
