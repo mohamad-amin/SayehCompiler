@@ -40,8 +40,6 @@ class WordReader : Reader {
                 line.split(" ").filter(String::isNotBlank).forEach { words.add(Word(it, index)) }
             }
 
-            println(words)
-
             tempFile.delete()
             sourceChanged = false
 

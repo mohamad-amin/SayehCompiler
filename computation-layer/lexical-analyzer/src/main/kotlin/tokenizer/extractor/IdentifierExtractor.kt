@@ -9,7 +9,7 @@ import entity.Word
 class IdentifierExtractor: TokenExtractor<Identifier> {
 
     companion object {
-        val regex = Regex("∧([a−z][A−Z])+([a−z][A−Z][0−9])∗")
+        val regex = Regex("[_a-zA-Z0-9]+")
         fun isIdentifier(from: Word) = from.text.matches(regex)
     }
 
