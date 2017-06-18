@@ -16,6 +16,7 @@ class WordTokenizer : Tokenizer {
     override var words: List<Word> = arrayListOf()
         set(value) {
             sourceChanged = true
+            field = value
         }
 
     override fun extractTokens(): List<Token> {

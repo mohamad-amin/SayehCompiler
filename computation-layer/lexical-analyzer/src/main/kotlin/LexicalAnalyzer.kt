@@ -7,8 +7,8 @@ import tokenizer.WordTokenizer
  */
 class LexicalAnalyzer {
 
-    val wordReader = WordReader()
-    val wordTokenizer = WordTokenizer()
+    private val wordReader = WordReader()
+    private val wordTokenizer = WordTokenizer()
 
     operator fun invoke(fileName: String) : List<Token> {
         wordReader.fileName = fileName

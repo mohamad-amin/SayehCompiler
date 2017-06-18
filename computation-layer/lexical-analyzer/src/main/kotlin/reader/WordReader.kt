@@ -1,5 +1,7 @@
 package reader
 
+import com.commentremover.app.CommentProcessor
+import com.commentremover.app.CommentRemover
 import entity.Word
 import java.io.File
 
@@ -14,17 +16,36 @@ class WordReader : Reader {
     override var fileName: String = ""
         set(value) {
             sourceChanged = true
+            field = value
         }
 
     override fun extractWords(): List<Word> {
         if (sourceChanged) {
-            words.clear()
-            File(fileName).readLines().map { it.replace(Regex("\\s+"), " ") }.forEachIndexed { index, line ->
-                line.split(" ").forEach { words.add(Word(it, index)) }
+
+            val tempFileName = File(fileName).name + "\$\$Temp.java"
+            val tempFile = File(tempFileName)
+            File(fileName).createNewFile()
+            tempFile.appendText(File(fileName).readText())
+
+            val commentRemover = CommentRemover.CommentRemoverBuilder()
+                    .startExternalPath(tempFileName)
+                    .removeJava(true)
+                    .removeTodos(true)
+                    .removeMultiLines(true)
+                    .removeSingleLines(true)
+                    .build()
+            CommentProcessor(commentRemover).start()
+
+            tempFile.readLines().map { it.replace("\\s+", "") }.forEachIndexed { index, line ->
+                line.split(" ").filter(String::isNotBlank).forEach { words.add(Word(it, index)) }
             }
+
+            println(words)
+
+            tempFile.delete()
             sourceChanged = false
+
         }
         return words
     }
-
 }

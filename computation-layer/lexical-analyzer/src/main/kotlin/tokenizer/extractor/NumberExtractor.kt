@@ -15,7 +15,7 @@ class NumberExtractor: TokenExtractor<Number> {
 
     override fun interact(from: Word) = when {
         isNumber(from) -> Number("", memoryAddress = -1, registerAddress = -1, line = from.line,
-                number = if (from.text.toInt() >= 0 && from[0] != '+') "+" + from.text else from.text)
+                number = if (from.text.toInt() >= 0 && from.text[0] != '+') "+" + from.text else from.text)
         else -> throw IllegalStateException(
                 "Required token: Identifier but it was: ${from.text} at line: ${from.line}")
     }

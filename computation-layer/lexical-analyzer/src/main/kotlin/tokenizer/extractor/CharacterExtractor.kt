@@ -10,8 +10,8 @@ class CharacterExtractor: TokenExtractor<Identifier> {
 
     companion object {
         fun isCharacter(from: Word) =
-                from.text.length == 3 && from[1].isLetter() &&
-                        from[0] == '\'' && from[2] == '\''
+                from.text.length == 3 && from.text[1].isLetter() &&
+                        from.text[0] == '\'' && from.text[2] == '\''
     }
 
     override fun interact(from: Word) = when {

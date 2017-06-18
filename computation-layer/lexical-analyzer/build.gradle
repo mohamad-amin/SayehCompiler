@@ -1,3 +1,4 @@
 dependencies {
     compile project(":domain-layer")
+    compile 'com.github.ertugrulcetin:CommentRemover:1.2'
 }
