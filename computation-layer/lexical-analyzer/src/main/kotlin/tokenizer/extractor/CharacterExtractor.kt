@@ -1,12 +1,12 @@
 package tokenizer.extractor
 
-import entity.Identifier
+import entity.Character
 import entity.Word
 
 /**
  * Created by mohamadamin (torpedo.mohammadi@gmail.com) on 6/4/17.
  */
-class CharacterExtractor: TokenExtractor<Identifier> {
+class CharacterExtractor: TokenExtractor<Character> {
 
     companion object {
         fun isCharacter(from: Word) =
@@ -14,8 +14,9 @@ class CharacterExtractor: TokenExtractor<Identifier> {
                         from.text[0] == '\'' && from.text[2] == '\''
     }
 
+    // Todo: Name of the number object?
     override fun interact(from: Word) = when {
-        isCharacter(from) -> Identifier(from.text, -1, -1, from.line)
+        isCharacter(from) -> Character("", from.text, from.line)
         else -> throw IllegalStateException(
                 "Required token: Identifier but it was: ${from.text} at line: ${from.line}")
     }

@@ -7,7 +7,7 @@
           <KotlinCompilerInfo>
             <option name="compilerSettings">
               <CompilerSettings>
-                <option name="additionalArguments" value="-d /home/mohamadamin/Projects/Java/SayehCompiler/presentation-layer/build/kotlin-classes/main -cp /home/mohamadamin/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.1.2/109c63008b2d569e38696a3178ee2493b0f6c776/kotlin-stdlib-1.1.2.jar:/home/mohamadamin/Projects/Java/SayehCompiler/domain-layer/build/libs/domain-layer-1.0-SNAPSHOT.jar:/home/mohamadamin/Projects/Java/SayehCompiler/computation-layer/lexical-analyzer/build/libs/lexical-analyzer-1.0-SNAPSHOT.jar:/home/mohamadamin/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar:/home/mohamadamin/.gradle/caches/modules-2/files-2.1/com.github.ertugrulcetin/CommentRemover/1.2/f0e7d9bbb15e87fab3ece83450fe07d984206ef7/CommentRemover-1.2.jar" />
+                <option name="additionalArguments" value="-d /home/mohamadamin/Projects/Java/SayehCompiler/presentation-layer/build/kotlin-classes/main -cp /home/mohamadamin/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/1.1.2/109c63008b2d569e38696a3178ee2493b0f6c776/kotlin-stdlib-1.1.2.jar:/home/mohamadamin/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar:/home/mohamadamin/.gradle/caches/modules-2/files-2.1/com.github.ertugrulcetin/CommentRemover/1.2/f0e7d9bbb15e87fab3ece83450fe07d984206ef7/CommentRemover-1.2.jar" />
               </CompilerSettings>
             </option>
             <option name="k2jsCompilerArguments">

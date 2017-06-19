@@ -25,7 +25,7 @@ class WordReader : Reader {
             val tempFileName = File(fileName).name + "\$\$Temp.java"
             val tempFile = File(tempFileName)
             File(fileName).createNewFile()
-            tempFile.appendText(File(fileName).readText())
+            tempFile.writeText(File(fileName).readText())
 
             val commentRemover = CommentRemover.CommentRemoverBuilder()
                     .startExternalPath(tempFileName)
@@ -40,7 +40,8 @@ class WordReader : Reader {
                 line.split(" ").filter(String::isNotBlank).forEach { words.add(Word(it, index)) }
             }
 
-            tempFile.delete()
+            // Todo: Delete the temp file in the final build
+//            tempFile.delete()
             sourceChanged = false
 
         }

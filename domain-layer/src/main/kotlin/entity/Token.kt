@@ -84,7 +84,7 @@ object TokenConstants {
 
 }
 
-sealed class Token(protected val value: String, val line: Int)
+sealed class Token(protected val word: String, val line: Int)
 
     sealed class Keyword(value: String, line: Int) : Token(value, line)
 
@@ -95,8 +95,10 @@ sealed class Token(protected val value: String, val line: Int)
         class CHAR(line: Int): Keyword(TokenConstants.Keyword.CHAR, line)
         class BOOL(line: Int): Keyword(TokenConstants.Keyword.BOOL, line)
         class NULL(line: Int): Keyword(TokenConstants.Keyword.NULL, line)
-        class TRUE(line: Int): Keyword(TokenConstants.Keyword.TRUE, line)
-        class FALSE(line: Int): Keyword(TokenConstants.Keyword.FALSE, line)
+        class TRUE(line: Int, var registerAddress: Int = -1, var memoryAddress: Int = -1):
+                Keyword(TokenConstants.Keyword.TRUE, line)
+        class FALSE(line: Int, var registerAddress: Int = -1, var memoryAddress: Int = -1):
+                Keyword(TokenConstants.Keyword.FALSE, line)
 
     sealed class Operator(value: String, line: Int): Token(value, line)
 
@@ -143,8 +145,15 @@ sealed class Token(protected val value: String, val line: Int)
         class Colon(line: Int): Punctuation(TokenConstants.Punctuation.Colon, line)
         class Semicolon(line: Int): Punctuation(TokenConstants.Punctuation.Semicolon, line)
 
-    class Number(val name: String, var number: String, var registerAddress: Int, var memoryAddress: Int, line: Int):
-            Token(if (number[0].isDigit()) "+" + number else number, line)
-    class Identifier(val name: String, var registerAddress: Int, var memoryAddress: Int, line: Int): Token(name, line)
-    class Character(val char: String, line: Int): Token(char, line)
+    class Number(val name: String, var number: String, line: Int, var registerAddress: Int = -1,
+                 var memoryAddress: Int = -1): Token(if (number[0].isDigit()) "+" + number else number, line)
+
+    class Identifier(val name: String, line: Int, var registerAddress: Int = -1, var memoryAddress: Int = -1,
+                     var type: ValueType = ValueType.UNKNOWN, var value: String = ""): Token(name, line)
+
+    class Character(val name: String, val char: String, line: Int, var registerAddress: Int = -1,
+                    var memoryAddress: Int = -1): Token(char, line)
+
     class Unknown(val text: String, line: Int): Token(text, line)
+
+enum class ValueType { INT, BOOL, CHAR, UNKNOWN }

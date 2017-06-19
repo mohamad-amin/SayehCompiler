@@ -1,3 +1,4 @@
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib:1.0.1"
+    compile project(":domain-layer")
+    compile "org.statefulj:statefulj-fsm:3.0"
 }

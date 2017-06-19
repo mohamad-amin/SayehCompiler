@@ -1,6 +1,7 @@
 package tokenizer.extractor
 
 import entity.Identifier
+import entity.ValueType
 import entity.Word
 
 /**
@@ -14,7 +15,7 @@ class IdentifierExtractor: TokenExtractor<Identifier> {
     }
 
     override fun interact(from: Word) = when {
-        isIdentifier(from) -> Identifier(from.text, -1, -1, from.line)
+        isIdentifier(from) -> Identifier(from.text, -1, -1, from.line, ValueType.UNKNOWN, "")
         else -> throw IllegalStateException(
                 "Required token: Identifier but it was: ${from.text} at line: ${from.line}")
     }
