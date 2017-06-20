@@ -1,4 +1,4 @@
-package tokenizer.extractor.operator
+package lexicalanalyzer.tokenizer.extractor.operator
 
 import entity.*
 import entity.LogicalOperator
@@ -10,9 +10,9 @@ import entity.TokenConstants.Operator.LogicalOperator as L
 class LogicalOperatorExtractor : OperatorExtractor<LogicalOperator> {
 
     override fun interact(from: Word) = when(from.text) {
-        L.And -> AndOperator(from.line)
-        L.Or -> OrOperator(from.line)
-        L.Not -> NotOperator(from.line)
+        TokenConstants.Operator.LogicalOperator.And -> AndOperator(from.line)
+        TokenConstants.Operator.LogicalOperator.Or -> OrOperator(from.line)
+        TokenConstants.Operator.LogicalOperator.Not -> NotOperator(from.line)
         else -> throw IllegalStateException(
                 "Required token: LogicalOperator but it was: ${from.text} at line: ${from.line}")
     }

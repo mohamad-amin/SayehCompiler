@@ -1,4 +1,4 @@
-package reader
+package lexicalanalyzer.reader
 
 import entity.Word
 

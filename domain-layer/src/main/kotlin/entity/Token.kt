@@ -84,13 +84,13 @@ object TokenConstants {
 
 }
 
-sealed class Token(protected val word: String, val line: Int)
+sealed class Token(val word: String, val line: Int)
 
     sealed class Keyword(value: String, line: Int) : Token(value, line)
 
-        class IF(line: Int): Keyword(TokenConstants.Keyword.IF, line)
-        class ELSE(line: Int): Keyword(TokenConstants.Keyword.ELSE, line)
-        class WHILE(line: Int): Keyword(TokenConstants.Keyword.WHILE, line)
+        class IF(line: Int, val singleLined: Boolean = false): Keyword(TokenConstants.Keyword.IF, line)
+        class ELSE(line: Int, val singleLined: Boolean = false): Keyword(TokenConstants.Keyword.ELSE, line)
+        class WHILE(line: Int, val singleLined: Boolean = false): Keyword(TokenConstants.Keyword.WHILE, line)
         class INT(line: Int): Keyword(TokenConstants.Keyword.INT, line)
         class CHAR(line: Int): Keyword(TokenConstants.Keyword.CHAR, line)
         class BOOL(line: Int): Keyword(TokenConstants.Keyword.BOOL, line)

@@ -1,3 +1,4 @@
+import lexicalanalyzer.LexicalAnalyzer
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileSystemView
 

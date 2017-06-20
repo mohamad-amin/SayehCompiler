@@ -1,4 +1,4 @@
-package tokenizer
+package lexicalanalyzer.tokenizer
 
 import entity.Token
 import entity.Word

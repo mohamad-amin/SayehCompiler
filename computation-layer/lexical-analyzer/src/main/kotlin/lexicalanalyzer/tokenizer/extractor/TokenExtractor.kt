@@ -1,4 +1,4 @@
-package tokenizer.extractor
+package lexicalanalyzer.tokenizer.extractor
 
 import base.Mapper
 import entity.Token

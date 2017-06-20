@@ -1,4 +1,6 @@
 dependencies {
     compile project(":domain-layer")
+    compile project(":lexical-analyzer")
     compile "org.statefulj:statefulj-fsm:3.0"
+//    kapt "org.statefulj:statefulj-fsm:3.0"
 }

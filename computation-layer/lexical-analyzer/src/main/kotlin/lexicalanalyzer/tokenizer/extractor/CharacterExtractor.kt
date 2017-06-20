@@ -1,4 +1,4 @@
-package tokenizer.extractor
+package lexicalanalyzer.tokenizer.extractor
 
 import entity.Character
 import entity.Word
@@ -16,7 +16,7 @@ class CharacterExtractor: TokenExtractor<Character> {
 
     // Todo: Name of the number object?
     override fun interact(from: Word) = when {
-        isCharacter(from) -> Character("", from.text, from.line)
+        CharacterExtractor.Companion.isCharacter(from) -> Character("", from.text, from.line)
         else -> throw IllegalStateException(
                 "Required token: Identifier but it was: ${from.text} at line: ${from.line}")
     }

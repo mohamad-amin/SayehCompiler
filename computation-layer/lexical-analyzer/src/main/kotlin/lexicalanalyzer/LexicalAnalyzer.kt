@@ -1,6 +1,8 @@
+package lexicalanalyzer
+
 import entity.Token
-import reader.WordReader
-import tokenizer.WordTokenizer
+import lexicalanalyzer.reader.WordReader
+import lexicalanalyzer.tokenizer.WordTokenizer
 
 /**
  * Created by mohamadamin (torpedo.mohammadi@gmail.com) on 6/5/17.

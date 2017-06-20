@@ -1,4 +1,5 @@
 dependencies {
     compile project(":domain-layer")
     compile project(":lexical-analyzer")
+    compile project(":syntax-analyzer")
 }

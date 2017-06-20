@@ -1,9 +1,9 @@
-package tokenizer
+package lexicalanalyzer.tokenizer
 
 import base.Mapper
 import entity.*
-import tokenizer.extractor.*
-import tokenizer.extractor.operator.OperatorExtractorImp
+import lexicalanalyzer.tokenizer.extractor.*
+import lexicalanalyzer.tokenizer.extractor.operator.OperatorExtractorImp
 
 /**
  * Created by mohamadamin (torpedo.mohammadi@gmail.com) on 6/2/17.

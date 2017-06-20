@@ -1,4 +1,4 @@
-package reader
+package lexicalanalyzer.reader
 
 import com.commentremover.app.CommentProcessor
 import com.commentremover.app.CommentRemover
