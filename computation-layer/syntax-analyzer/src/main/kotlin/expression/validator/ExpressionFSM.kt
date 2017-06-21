@@ -1,7 +1,7 @@
 package expression.validator
 
-import entity.BraceClose
-import entity.BraceOpen
+import entity.ParenthesisClose
+import entity.ParenthesisOpen
 import entity.Number
 import entity.Operator
 import org.statefulj.fsm.FSM
@@ -18,33 +18,44 @@ class ExpressionFSM {
 
     companion object {
 
-        val braceOpenAction = Action<ExpressionState> { stateful, event, args ->
+        val parenthesisOpenAction = Action<ExpressionState> { stateful, event, args ->
+            println("Pushing into stack")
             stateful.parenthesisStack.push(true)
         }
 
-        val braceCloseAction = Action<ExpressionState> { stateful, event, args ->
-            stateful.parenthesisStack.pop()
+        val parenthesisCloseAction = Action<ExpressionState> { stateful, event, args ->
+            if (stateful.parenthesisStack.isEmpty()) {
+                println("WTF EMPTY STACK @ExpressionFSM::parenthesisCloseAction")
+            } else {
+                println("popping into stack, old size: ${stateful.parenthesisStack.size}")
+                stateful.parenthesisStack.pop()
+                println("popped from stack, new size: ${stateful.parenthesisStack.size}")
+            }
         }
 
         fun getFSM(): FSM<ExpressionState> {
 
-            val stateS = StateImpl<ExpressionState>("S")
-            val stateO = StateImpl<ExpressionState>("O")
-            val stateN = StateImpl<ExpressionState>("N", true)
+            val stateS: State<ExpressionState> = StateImpl("S")
+            val stateO: State<ExpressionState> = StateImpl("O")
+            val stateN: State<ExpressionState> = StateImpl("N", true)
 
-            stateS.addTransition(BraceOpen::javaClass.toString(), stateS, braceOpenAction)
-            stateS.addTransition(Number::javaClass.toString(), stateN)
+            stateS.addTransition(Number::class.java.toString(), stateN)
+            stateS.addTransition(ParenthesisOpen::class.java.toString(), stateS, parenthesisOpenAction)
 
-            stateN.addTransition(BraceClose::javaClass.toString(),
+            stateN.addTransition(ParenthesisClose::class.java.toString(),
                     { state, event, args ->
                         if (state.parenthesisStack.isNotEmpty()) {
-                            StateActionPairImpl<ExpressionState>(stateN, braceCloseAction)
-                        } else null
+                            println("With close parenthesis action")
+                            StateActionPairImpl<ExpressionState>(stateN, parenthesisCloseAction)
+                        } else {
+                            println("with null")
+                            null
+                        }
                     })
-            stateN.addTransition(Operator::javaClass.toString(), stateO)
+            stateN.addTransition(Operator::class.java.toString(), stateO)
 
-            stateO.addTransition(Number::javaClass.toString(), stateN)
-            stateO.addTransition(BraceOpen::javaClass.toString(), stateS, braceOpenAction)
+            stateO.addTransition(Number::class.java.toString(), stateN)
+            stateO.addTransition(ParenthesisOpen::class.java.toString(), stateS, parenthesisOpenAction)
 
             return FSM.FSMBuilder<ExpressionState>()
                     .addState(stateS, true)

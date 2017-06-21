@@ -24,9 +24,9 @@ class WordMapper: Mapper<Word, Token> {
                 else if (TokenConstants.Punctuation.contains(from.text)) punctuationExtractor.interact(from)
                 else Unknown(from.text, from.line)
             } else {
-                if (IdentifierExtractor.isIdentifier(from)) identifierExtractor.interact(from)
+                if (NumberExtractor.isNumber(from)) numberExtractor.interact(from)
                 else if (CharacterExtractor.isCharacter(from)) characterExtractor.interact(from)
-                else if (NumberExtractor.isNumber(from)) numberExtractor.interact(from)
+                else if (IdentifierExtractor.isIdentifier(from)) identifierExtractor.interact(from)
                 else Unknown(from.text, from.line)
             }
 

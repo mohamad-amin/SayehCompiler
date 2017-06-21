@@ -58,7 +58,7 @@ class BaseExpressionResolver(var tokens: List<Token>) {
                             ValueType.CHAR -> Character(token.name, token.value, token.line)
                             ValueType.INT -> Number(token.name, token.value, token.line)
                             else -> {
-                                println("WTF Here @ExpressionResolver::interactBoolExpr")
+                                println("WTF @ExpressionResolver::interactBoolExpr")
                                 token
                             }
                         }
@@ -170,7 +170,7 @@ class BaseExpressionResolver(var tokens: List<Token>) {
 
         return if (faultyExpression) failureResult
         else {
-            val validationResult = expressionValidator.validate(exp)
+            val validationResult = expressionValidator.validate(exp, nextToken)
             when (validationResult) {
                 is Success -> processIntExpression(expression, startIndex + exp.size, exp[0].line)
                 is Failure -> validationResult

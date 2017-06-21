@@ -9,7 +9,7 @@ import entity.Word
 class NumberExtractor: TokenExtractor<Number> {
 
     companion object {
-        val regex = Regex("^[+-]\\d+|\\d+]")
+        val regex = Regex("^[+-]\\d+|\\d+")
         fun isNumber(from: Word) = from.text.matches(NumberExtractor.Companion.regex)
     }
 
