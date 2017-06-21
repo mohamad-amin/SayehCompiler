@@ -6,6 +6,7 @@ import expression.ExpressionResult
 import expression.Failure
 import expression.Success
 import expression.validator.ExpressionValidator
+import lexicalanalyzer.tokenizer.WordTokenizer
 import javax.script.ScriptEngineManager
 
 /**
@@ -21,7 +22,7 @@ class BaseExpressionResolver(var tokens: List<Token>) {
 
         val neededTokens = tokens.subList(startIndex, tokens.size)
         val expression = neededTokens.takeWhile { token -> endTokens.none { it.javaClass == token.javaClass } }
-        val nextToken = neededTokens[expression.size + startIndex]
+        val nextToken = neededTokens[expression.size]
 
         println("Expression: $expression") // Todo: Remove this line in final build
 
@@ -69,31 +70,31 @@ class BaseExpressionResolver(var tokens: List<Token>) {
             } else token
         }
 
-        return when(tokens.size) {
-            1 -> checkSingleBoolExpr(tokens[0], expType, startIndex+1)
+        return when(exp.size) {
+            1 -> checkSingleBoolExpr(exp[0], expType, startIndex+1)
             2 -> {
-                if (tokens[0].word == TokenConstants.Operator.LogicalOperator.Not) {
-                    if (checkSingleBoolExpr(tokens[1], expType, -1) is Success)
+                if (exp[0].word == TokenConstants.Operator.LogicalOperator.Not) {
+                    if (checkSingleBoolExpr(exp[1], expType, exp[0].line) is Success)
                         Success("true", startIndex+2)
-                    else unexpectedTokenError(tokens[1], expType)
+                    else unexpectedTokenError(exp[1], expType)
                 } else Failure(CompileError("SYNTAX ERROR: Types do not match, expected a logical " +
-                        "expression but found: ${tokens[0].word} ${tokens[1].word} at line ${tokens[0].line}"))
+                        "expression but found: ${exp[0].word} ${exp[1].word} at line ${exp[0].line}"))
             }
             else -> {
-                if (tokens[0] is Keyword) {
-                    if (tokens.size != 3) {
+                if (exp[0] is Keyword) {
+                    if (exp.size != 3) {
                         Failure(CompileError("SYNTAX ERROR: Types do not match, expected a logical expression " +
-                                "but found: ${tokens.joinToString(" ") { it.word }} at line ${tokens[0].line}"))
+                                "but found: ${exp.joinToString(" ") { it.word }} at line ${exp[0].line}"))
                     } else {
-                        if (checkSingleBoolExpr(tokens[0], expType, -1) is Success) {
-                            if ((tokens[1] is LogicalOperator || tokens[1] is RelationalOperator) &&
-                                    tokens[1].word != TokenConstants.Operator.LogicalOperator.Not) {
-                                if (checkSingleBoolExpr(tokens[2], expType, -1) is Success) {
+                        if (checkSingleBoolExpr(exp[0], expType, exp[0].line) is Success) {
+                            if ((exp[1] is LogicalOperator || exp[1] is RelationalOperator) &&
+                                    exp[1].word != TokenConstants.Operator.LogicalOperator.Not) {
+                                if (checkSingleBoolExpr(exp[2], expType, exp[2].line) is Success) {
                                     Success("true", startIndex+3)
-                                } else unexpectedTokenError(tokens[2], expType)
+                                } else unexpectedTokenError(exp[2], expType)
                             } else Failure(CompileError(ErrorType.Syntax,
-                                    "Unexpected Token", "required logical operator", tokens[1]))
-                        } else unexpectedTokenError(tokens[0], expType)
+                                    "Unexpected Token", "required logical operator", exp[1]))
+                        } else unexpectedTokenError(exp[0], expType)
                     }
                 } else {
 
@@ -105,14 +106,14 @@ class BaseExpressionResolver(var tokens: List<Token>) {
                         is Failure -> firstExpressionResult
                         is Success -> {
                             val newStart = firstExpressionResult.endToken - startIndex
-                            if (endTokens.any { it.javaClass == tokens[newStart].javaClass }) {
-                                val secondExpressionResult = interact(newStart+1, ValueType.INT, listOf(nextToken))
-                                return when (secondExpressionResult) {
-                                    is Failure -> secondExpressionResult
-                                    is Success -> Success("true", secondExpressionResult.endToken)
+                            if (endTokens.any { it.javaClass == exp[newStart].javaClass }) {
+                                val secondResult = interact(newStart+1+startIndex, ValueType.INT, listOf(nextToken))
+                                return when (secondResult) {
+                                    is Failure -> secondResult
+                                    is Success -> Success("true", secondResult.endToken)
                                 }
                             } else Failure(CompileError(
-                                    ErrorType.Syntax, "Unexpected Token", "required $endTokens", tokens[newStart]))
+                                    ErrorType.Syntax, "Unexpected Token", "required $endTokens", exp[newStart]))
                         }
                     }
 
@@ -185,9 +186,25 @@ class BaseExpressionResolver(var tokens: List<Token>) {
         val result = engine.eval(expression).toString()
         return when (result) {
             "Infinity" ->
-                Failure(CompileError(ErrorType.Semantic, "Division by zero!", "zero wasn't allowed", Divide(line)))
+                Failure(CompileError("SEMANTIC ERROR: Division by zero! zero wasn't allowed as divisor at line $line"))
             else -> Success(result, endToken)
         }
     }
+
+}
+
+// Todo: Remove this function in the final build
+fun main(args: Array<String>) {
+
+    val expression = "bool c = 1 * 2 == 4 * ( 5 ) / ( 10 - 10 ) ;"
+    val tokenizer = WordTokenizer()
+
+    tokenizer.words = expression.split(" ").map { Word(it, 1) }
+    val tokens = tokenizer.extractTokens()
+
+    val expressionResolver = BaseExpressionResolver(tokens)
+
+//    tokens.forEach { println("${it.word} -> ${it.javaClass}") }
+    println("The result:\n${expressionResolver.interact(3, ValueType.BOOL, listOf(Semicolon(1)))}")
 
 }

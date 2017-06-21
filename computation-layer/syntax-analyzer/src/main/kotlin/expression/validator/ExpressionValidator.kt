@@ -63,16 +63,12 @@ class ExpressionValidator {
     }
 
     fun printStateEvent(state: StateImpl<ExpressionState>, event: String) {
-        print("state: ${state.name} and event: $event and possible events: ${state.transitions.keys.count()} -> ")
-        state.transitions.keys.forEach { print("$it | ")}
-        println()
+//        print("state: ${state.name} and event: $event and possible events: ${state.transitions.keys.count()} -> ")
+//        state.transitions.keys.forEach { print("$it | ")}
+//        println()
     }
 
-    fun hasEvent(state: ExpressionState, event: String) =
-        if (fsm.getCurrentState(state).getTransition(event) != null) {
-            println(fsm.getCurrentState(state).getTransition(event))
-            true
-        } else false
+    fun hasEvent(state: ExpressionState, event: String) = fsm.getCurrentState(state).getTransition(event) != null
 
     fun getFailure(events: MutableSet<String>, token: Token) =
             Failure(CompileError(ErrorType.Syntax, "Unexpected Token", "required $events", token))

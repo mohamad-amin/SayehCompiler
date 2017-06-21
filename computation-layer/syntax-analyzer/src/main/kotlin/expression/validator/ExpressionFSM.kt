@@ -13,23 +13,24 @@ import org.statefulj.fsm.model.impl.StateImpl
 
 /**
  * Created by mohamadamin (torpedo.mohammadi@gmail.com) on 6/20/17.
+ * Todo: Remove extra prints in the final build
  */
 class ExpressionFSM {
 
     companion object {
 
         val parenthesisOpenAction = Action<ExpressionState> { stateful, event, args ->
-            println("Pushing into stack")
+//            println("Pushing into stack")
             stateful.parenthesisStack.push(true)
         }
 
         val parenthesisCloseAction = Action<ExpressionState> { stateful, event, args ->
             if (stateful.parenthesisStack.isEmpty()) {
-                println("WTF EMPTY STACK @ExpressionFSM::parenthesisCloseAction")
+//                println("WTF EMPTY STACK @ExpressionFSM::parenthesisCloseAction")
             } else {
-                println("popping into stack, old size: ${stateful.parenthesisStack.size}")
+//                println("popping into stack, old size: ${stateful.parenthesisStack.size}")
                 stateful.parenthesisStack.pop()
-                println("popped from stack, new size: ${stateful.parenthesisStack.size}")
+//                println("popped from stack, new size: ${stateful.parenthesisStack.size}")
             }
         }
 
@@ -45,10 +46,10 @@ class ExpressionFSM {
             stateN.addTransition(ParenthesisClose::class.java.toString(),
                     { state, event, args ->
                         if (state.parenthesisStack.isNotEmpty()) {
-                            println("With close parenthesis action")
+//                            println("With close parenthesis action")
                             StateActionPairImpl<ExpressionState>(stateN, parenthesisCloseAction)
                         } else {
-                            println("with null")
+//                            println("with null")
                             null
                         }
                     })
