@@ -61,13 +61,9 @@ class ValidatorFSM {
             valuedIdentifier = (tokens[currentIndex] as Identifier).value.isNotBlank()
             identifierIndex = currentIndex
             // Todo: Single if and after it else?
-            if (scopeStack.peek() is Single) {
-                if (scopeStack.pop() is SingleIf) {
-                    elsePossible = true
-                }
-            }
+            elsePossible = false
         }}
-        
+
         val assignmentOperatorAction = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
             val identifier = args[0] as Identifier
             identifierType = identifier.type
@@ -98,12 +94,6 @@ class ValidatorFSM {
             variableDeclarationMode = false
             // Todo: Single if and after it else?
             elsePossible = false
-            if (scopeStack.peek() is Single) {
-                val popped = scopeStack.pop()
-                if (popped is SingleIf) elsePossible = true
-                else if (popped is SingleElse)
-                    if (scopeStack.pop() is SingleIf) elsePossible = true
-            }
         }}
 
         val identifierUnionExpression = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
@@ -113,6 +103,43 @@ class ValidatorFSM {
                     if (unionExpressionType is PlusPlus) engine.eval(identifier.value + " + 1") as String
                     else engine.eval(identifier.value + " - 1") as String
             identifier.value = Number("?", number).number
+        }}
+
+        val flowSaverAction = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
+            variableDeclarationMode = false
+            flowType = when (event) {
+                WHILE().className() -> WHILE()
+                IF().className() -> IF()
+                else -> {
+                    println("WTF @ValidatorFSM::flowSaverAction")
+                    flowType
+                }
+            }
+            elsePossible = false
+        }}
+
+        val flowAdderAction = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
+            when (flowType) {
+                is IF -> MultipleIf()
+                is WHILE -> MultipleWhile()
+                else -> {
+                    println("WTF @ValidatorFSM::flowAdderAction")
+                    UnknownScope()
+                }
+            }
+        }}
+
+        // Todo: Save if for code generation
+        val elseAction = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
+            elsePossible = false
+        }}
+
+        val elseAdderAction = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
+            scopeStack.push(MultipleElse())
+        }}
+
+        val braceYourselfActionIsComing = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
+            if (scopeStack.pop() is MultipleIf) elsePossible = true
         }}
 
         fun getFSM(): FSM<ValidatorStateful> {
@@ -127,10 +154,10 @@ class ValidatorFSM {
             val aUnionExp = StateImpl<ValidatorStateful>("After Union Expression")
             val bUnionExp = StateImpl<ValidatorStateful>("Before Union Expression")
             val unionIdentifier = StateImpl<ValidatorStateful>("Union Identifier")
+            val conditionalFlow = StateImpl<ValidatorStateful>("Conditional Flow")
             val condition = StateImpl<ValidatorStateful>("Condition")
-            val ec1 = StateImpl<ValidatorStateful>("Start")
-            val ifState = StateImpl<ValidatorStateful>("Start")
-            val elseState = StateImpl<ValidatorStateful>("Start")
+            val afterCondition = StateImpl<ValidatorStateful>("After Condition")
+            val elseState = StateImpl<ValidatorStateful>("Else")
 
             start.addTransition(listOf(INT(), BOOL(), CHAR()), Transition { stateful, event, args ->
                 if (stateful.variableDeclarationMode) {
@@ -199,6 +226,29 @@ class ValidatorFSM {
             })
 
             unionIdentifier.addTransition(Semicolon(), start)
+
+            start.addTransition(listOf(WHILE(), IF()), conditionalFlow, flowSaverAction)
+            // Todo: Expression Action
+            conditionalFlow.addTransition(ParenthesisOpen(), condition)
+
+            condition.addTransition(ParenthesisClose(), Transition { stateful, event, args ->
+                if (stateful.faultyExpression) StateActionPair(trapState)
+                else StateActionPair(afterCondition)
+            })
+
+            afterCondition.addTransition(BraceOpen(), start, flowAdderAction)
+
+            start.addTransition(ELSE(), Transition { stateful, event, args ->
+                if (stateful.elsePossible) StateActionPair(elseState, elseAction)
+                else StateActionPair(trapState) // Unexpected token: Else
+            })
+
+            elseState.addTransition(BraceOpen(), start, elseAdderAction)
+
+            start.addTransition(BraceClose(), Transition { stateful, event, args ->
+                if (stateful.scopeStack.peek() is Multiple) StateActionPair(start, braceYourselfActionIsComing)
+                else StateActionPair(trapState) // Closed Brace wasn't allowed
+            })
 
 //            return FSM.FSMBuilder<ValidatorStateful>()
 //                    .addState(stateS, true)

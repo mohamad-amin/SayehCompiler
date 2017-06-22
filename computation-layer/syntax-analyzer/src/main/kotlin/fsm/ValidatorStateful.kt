@@ -26,6 +26,7 @@ class ValidatorStateful(val tokens: MutableList<Token>) {
     var faultyExpression = false
     var expressionResult: ExpressionResult = Failure(CompileError(""))
     var unionExpressionType: ArithmeticOperator = Plus()
+    var flowType: Keyword = INT()
 
     val scopeStack: Stack<Scope> = Stack()
 
@@ -40,3 +41,4 @@ sealed class Scope
         class SingleIf: Single()
         class SingleWhile: Single()
         class SingleElse: Single()
+    class UnknownScope: Scope()
