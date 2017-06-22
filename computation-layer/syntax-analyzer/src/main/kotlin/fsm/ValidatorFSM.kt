@@ -2,7 +2,10 @@ package fsm
 
 import entity.*
 import entity.Number
+import expression.ExpressionResult
+import expression.Failure
 import expression.Success
+import expression.resolver.BaseExpressionResolver
 import org.statefulj.fsm.FSM
 import org.statefulj.fsm.model.Action
 import org.statefulj.fsm.model.State
@@ -15,6 +18,7 @@ import javax.script.ScriptEngineManager
  * Created by mohamadamin (torpedo.mohammadi@gmail.com) on 6/21/17.
  * Todo: Save failure result for trap state moves
  * Todo: Change currentIndex after onEvent call
+ * Todo: Save identifier value on semicolon
  */
 class ValidatorFSM {
 
@@ -75,8 +79,11 @@ class ValidatorFSM {
                 MultiplyAssign().className() -> MultiplyAssign()
                 else -> operatorType
             }
+            // Todo: Expression Action (?)
+            expressionResult = handleExpression(stateful, listOf(Semicolon()))
+            faultyExpression = expressionResult is Failure
         }}
-        
+
         val aUnionExpressionAction = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
             val engine = ScriptEngineManager().getEngineByName("js")
             val identifier = tokens[identifierIndex] as Identifier
@@ -142,6 +149,16 @@ class ValidatorFSM {
             if (scopeStack.pop() is MultipleIf) elsePossible = true
         }}
 
+        val exp1Action = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
+            expressionResult = handleExpression(stateful, listOf(Semicolon(), Comma()))
+            faultyExpression = expressionResult is Failure
+        }}
+
+        val conditionalExpressionAction = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
+            expressionResult = handleExpression(stateful, listOf(ParenthesisClose()), true)
+            faultyExpression = expressionResult is Failure
+        }}
+
         fun getFSM(): FSM<ValidatorStateful> {
 
             val trapState = StateImpl<ValidatorStateful>("TRAP", false, true)
@@ -173,7 +190,6 @@ class ValidatorFSM {
             })
 
             declared.addTransition(Comma(), declare)
-            // Todo: Expression Action
             declare.addTransition(Assign(), exp1)
             declare.addTransition(Semicolon(), start)
 
@@ -189,7 +205,6 @@ class ValidatorFSM {
                 else StateActionPair(trapState) // not declared
             })
 
-            // Todo: Expression Action
             // Todo: Pass identifier as vararg in the transition
             assign.addTransition(listOf(Assign(), PlusAssign(), MinusAssign(), DivideAssign(), MultiplyAssign()),
                     Transition { stateful, event, args ->
@@ -228,7 +243,6 @@ class ValidatorFSM {
             unionIdentifier.addTransition(Semicolon(), start)
 
             start.addTransition(listOf(WHILE(), IF()), conditionalFlow, flowSaverAction)
-            // Todo: Expression Action
             conditionalFlow.addTransition(ParenthesisOpen(), condition)
 
             condition.addTransition(ParenthesisClose(), Transition { stateful, event, args ->
@@ -258,6 +272,42 @@ class ValidatorFSM {
 
             TODO()
 
+        }
+
+        fun handleExpression(stateful: ValidatorStateful,
+                             endTokens: List<Token>, condition: Boolean = false): ExpressionResult {
+
+            var expressionResult: ExpressionResult = Failure(CompileError(""))
+
+            with (stateful) {
+                val expressionResolver = BaseExpressionResolver(tokens)
+                val valueType = if (condition) ValueType.BOOL else identifierType
+                expressionResult = expressionResolver.interact(currentIndex+1, valueType, endTokens)
+            }
+
+            return when (expressionResult) {
+                is Failure -> expressionResult
+                is Success -> {
+                    val identifier = stateful.tokens[stateful.identifierIndex] as Identifier
+                    if (condition || stateful.operatorType is Assign) expressionResult
+                    else processAssignment(stateful.operatorType,
+                            expressionResult as Success, identifier.value, identifier.line)
+                }
+            }
+
+        }
+
+        fun evaluate(expression: String) = ScriptEngineManager().getEngineByName("js").eval(expression) as String
+
+        fun processAssignment(type: AssignmentOperator, result: Success, value: String, line: Int) = when (type) {
+            is PlusAssign -> Success(Number("", evaluate(value + "+" + result.result)).number, result.endToken)
+            is MinusAssign -> Success(Number("", evaluate(value + "-" + result.result)).number, result.endToken)
+            is MultiplyAssign -> Success(Number("", evaluate(value + "*" + result.result)).number, result.endToken)
+            is DivideAssign ->
+                    if (evaluate(result.result).toInt() == 0)
+                        Failure(CompileError("SEMANTIC ERROR: Division by zero at line $line"))
+                    else Success(Number("", evaluate(value + "/" + result.result)).number, result.endToken)
+            else -> Failure(CompileError("WTF @ValidatorFSM::processComplexAssignment"))
         }
 
         fun isVariableDeclared(tokens: List<Token>, currentIndex: Int, id: String) =

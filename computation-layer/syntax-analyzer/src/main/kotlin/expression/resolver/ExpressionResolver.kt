@@ -35,19 +35,7 @@ class BaseExpressionResolver(var tokens: List<Token>) {
 
     }
 
-    fun interactCharExpr(exp: Token, startIndex: Int, expType: ValueType) = when (exp) {
-        is Identifier -> {
-            if (exp.type == expType)
-                if (exp.value.isNotEmpty())
-                    Success(exp.value, startIndex+1)
-                else Failure(CompileError(ErrorType.Semantic, "Undefined variable", "required type: $expType", exp))
-            else Failure(CompileError(ErrorType.Semantic, "Types do not match", "required type: $expType", exp))
-        }
-        is Character -> Success(exp.char, startIndex+1)
-        else -> Failure(CompileError(ErrorType.Syntax, "Unexpected token", "required a character expression", exp))
-    }
-
-    fun interactBoolExpr(exp: List<Token>, nextToken: Token, startIndex: Int, expType: ValueType): ExpressionResult {
+    private fun interactBoolExpr(exp: List<Token>, nextToken: Token, startIndex: Int, expType: ValueType): ExpressionResult {
 
         exp.map { token ->
             if (token is Identifier) {
@@ -123,17 +111,29 @@ class BaseExpressionResolver(var tokens: List<Token>) {
 
     }
 
-    fun unexpectedTokenError(token: Token, expType: ValueType) =
+    private fun interactCharExpr(exp: Token, startIndex: Int, expType: ValueType) = when (exp) {
+        is Identifier -> {
+            if (exp.type == expType)
+                if (exp.value.isNotEmpty())
+                    Success(exp.value, startIndex+1)
+                else Failure(CompileError(ErrorType.Semantic, "Undefined variable", "required type: $expType", exp))
+            else Failure(CompileError(ErrorType.Semantic, "Types do not match", "required type: $expType", exp))
+        }
+        is Character -> Success(exp.char, startIndex+1)
+        else -> Failure(CompileError(ErrorType.Syntax, "Unexpected token", "required a character expression", exp))
+    }
+
+    private fun unexpectedTokenError(token: Token, expType: ValueType) =
             Failure(CompileError(ErrorType.Syntax, "Unexpected Token", "required type: $expType", token))
 
-    fun checkSingleBoolExpr(token: Token, expType: ValueType, endToken: Int) = when(token) {
+    private fun checkSingleBoolExpr(token: Token, expType: ValueType, endToken: Int) = when(token) {
         is TRUE -> Success(TokenConstants.Keyword.TRUE, endToken)
         is FALSE -> Success(TokenConstants.Keyword.FALSE, endToken)
         else -> Failure(CompileError(
                 ErrorType.Semantic, "Types do not match", "required type: $expType", token))
     }
 
-    fun interactIntExpr(exp: List<Token>, nextToken: Token, startIndex: Int, expType: ValueType): ExpressionResult {
+    private fun interactIntExpr(exp: List<Token>, nextToken: Token, startIndex: Int, expType: ValueType): ExpressionResult {
 
         var faultyExpression = false
         var failureResult: Failure = Failure(CompileError(ErrorType.Unknown, "", "", nextToken))
@@ -181,7 +181,7 @@ class BaseExpressionResolver(var tokens: List<Token>) {
     }
 
     // Todo: Possible Improvements
-    fun processIntExpression(expression: String, endToken: Int, line: Int): ExpressionResult {
+    private fun processIntExpression(expression: String, endToken: Int, line: Int): ExpressionResult {
         val engine = ScriptEngineManager().getEngineByName("js")
         val result = engine.eval(expression).toString()
         return when (result) {
