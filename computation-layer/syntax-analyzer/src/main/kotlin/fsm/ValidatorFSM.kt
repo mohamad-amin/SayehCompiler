@@ -18,17 +18,36 @@ import javax.script.ScriptEngineManager
  * Created by mohamadamin (torpedo.mohammadi@gmail.com) on 6/21/17.
  * Todo: Save failure result for trap state moves
  * Todo: Change currentIndex after onEvent call
- * Todo: Save identifier value on semicolon
  */
 class ValidatorFSM {
 
     private class StateActionPair(state: State<ValidatorStateful>, action: Action<ValidatorStateful>? = null) :
             StateActionPairImpl<ValidatorStateful>(state, action)
 
+    object States {
+        val trapState = "TRAP"
+        val start = "Start"
+        val declare = "Declare"
+        val declared = "Declared"
+        val exp1 = "Expression Type 1"
+        val assign = "Assign"
+        val exp2 = "Expression Type 2"
+        val aUnionExp = "After Union Expression"
+        val bUnionExp = "Before Union Expression"
+        val unionIdentifier = "Union Identifier"
+        val conditionalFlow = "Conditional Flow"
+        val condition = "Condition"
+        val afterCondition = "After Condition"
+        val elseState = "Else"
+    }
+
     companion object {
 
-        inline fun <T, reified R : Any> State<T>.addTransitions(events: List<R>, transition: Transition<T>) =
+        inline fun <T> State<T>.addTransitions(events: List<String>, transition: Transition<T>) =
                 events.forEach { addTransition(it, transition) }
+
+        inline fun <T> State<T>.addTransitions(events: List<String>, state: State<T>, action: Action<T>) =
+                events.forEach { addTransition(it, state, action) }
 
         inline fun <T, reified R : Any> State<T>.addTransition(event: R, transition: Transition<T>) =
                 addTransition(event.className(), transition)
@@ -52,7 +71,7 @@ class ValidatorFSM {
 
         val identifierIndexSaver = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
             identifierIndex = currentIndex
-            (args[0] as Identifier).type = identifierType
+            (tokens[currentIndex] as Identifier).type = identifierType
 
         }}
 
@@ -69,7 +88,7 @@ class ValidatorFSM {
         }}
 
         val assignmentOperatorAction = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
-            val identifier = args[0] as Identifier
+            val identifier = tokens[identifierIndex] as Identifier
             identifierType = identifier.type
             operatorType = when (event) {
                 Assign().className() -> Assign()
@@ -79,17 +98,15 @@ class ValidatorFSM {
                 MultiplyAssign().className() -> MultiplyAssign()
                 else -> operatorType
             }
-            // Todo: Expression Action (?)
             expressionResult = handleExpression(stateful, listOf(Semicolon()))
-            faultyExpression = expressionResult is Failure
         }}
 
         val aUnionExpressionAction = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
             val engine = ScriptEngineManager().getEngineByName("js")
             val identifier = tokens[identifierIndex] as Identifier
             val number =
-                    if (event == PlusPlus().className()) engine.eval(identifier.value + " + 1") as String
-                    else engine.eval(identifier.value + " - 1") as String
+                    if (event == PlusPlus().className()) engine.eval(identifier.value + " + 1").toString()
+                    else engine.eval(identifier.value + " - 1").toString()
             identifier.value = Number("?", number).number
         }}
         
@@ -107,8 +124,8 @@ class ValidatorFSM {
             val engine = ScriptEngineManager().getEngineByName("js")
             val identifier = tokens[currentIndex] as Identifier
             val number =
-                    if (unionExpressionType is PlusPlus) engine.eval(identifier.value + " + 1") as String
-                    else engine.eval(identifier.value + " - 1") as String
+                    if (unionExpressionType is PlusPlus) engine.eval(identifier.value + " + 1").toString()
+                    else engine.eval(identifier.value + " - 1").toString()
             identifier.value = Number("?", number).number
         }}
 
@@ -126,7 +143,7 @@ class ValidatorFSM {
         }}
 
         val flowAdderAction = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
-            when (flowType) {
+            val scope = when (flowType) {
                 is IF -> MultipleIf()
                 is WHILE -> MultipleWhile()
                 else -> {
@@ -134,6 +151,7 @@ class ValidatorFSM {
                     UnknownScope()
                 }
             }
+            scopeStack.push(scope)
         }}
 
         // Todo: Save if for code generation
@@ -150,76 +168,84 @@ class ValidatorFSM {
         }}
 
         val exp1Action = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
+            stateful.operatorType = Assign()
             expressionResult = handleExpression(stateful, listOf(Semicolon(), Comma()))
-            faultyExpression = expressionResult is Failure
         }}
 
         val conditionalExpressionAction = Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
             expressionResult = handleExpression(stateful, listOf(ParenthesisClose()), true)
-            faultyExpression = expressionResult is Failure
         }}
+
+        fun getErrorAction(message: String, errorType: ErrorType = ErrorType.Syntax) =
+                Action<ValidatorStateful> { stateful, event, args -> with (stateful) {
+                    error = CompileError(errorType, message, tokens[currentIndex])
+                }}
 
         fun getFSM(): FSM<ValidatorStateful> {
 
-            val trapState = StateImpl<ValidatorStateful>("TRAP", false, true)
-            val start = StateImpl<ValidatorStateful>("Start", true)
-            val declare = StateImpl<ValidatorStateful>("Declare")
-            val declared = StateImpl<ValidatorStateful>("Declared")
-            val exp1 = StateImpl<ValidatorStateful>("Expression Type 1")
-            val assign = StateImpl<ValidatorStateful>("Assign")
-            val exp2 = StateImpl<ValidatorStateful>("Expression Type 2")
-            val aUnionExp = StateImpl<ValidatorStateful>("After Union Expression")
-            val bUnionExp = StateImpl<ValidatorStateful>("Before Union Expression")
-            val unionIdentifier = StateImpl<ValidatorStateful>("Union Identifier")
-            val conditionalFlow = StateImpl<ValidatorStateful>("Conditional Flow")
-            val condition = StateImpl<ValidatorStateful>("Condition")
-            val afterCondition = StateImpl<ValidatorStateful>("After Condition")
-            val elseState = StateImpl<ValidatorStateful>("Else")
+            val trapState = StateImpl<ValidatorStateful>(States.trapState, false, true)
+            val start = StateImpl<ValidatorStateful>(States.start, true)
+            val declare = StateImpl<ValidatorStateful>(States.declare)
+            val declared = StateImpl<ValidatorStateful>(States.declared)
+            val exp1 = StateImpl<ValidatorStateful>(States.exp1)
+            val assign = StateImpl<ValidatorStateful>(States.assign)
+            val exp2 = StateImpl<ValidatorStateful>(States.exp2)
+            val aUnionExp = StateImpl<ValidatorStateful>(States.aUnionExp)
+            val bUnionExp = StateImpl<ValidatorStateful>(States.bUnionExp)
+            val unionIdentifier = StateImpl<ValidatorStateful>(States.unionIdentifier)
+            val conditionalFlow = StateImpl<ValidatorStateful>(States.conditionalFlow)
+            val condition = StateImpl<ValidatorStateful>(States.condition)
+            val afterCondition = StateImpl<ValidatorStateful>(States.afterCondition)
+            val elseState = StateImpl<ValidatorStateful>(States.elseState)
 
-            start.addTransition(listOf(INT(), BOOL(), CHAR()), Transition { stateful, event, args ->
-                if (stateful.variableDeclarationMode) {
-                    StateActionPair(declare, identifierDeclarationAction)
-                } else StateActionPair(trapState) // not variable declaration mode
-            })
+            start.addTransitions(listOf(INT().className(), BOOL().className(), CHAR().className()),
+                    Transition { stateful, event, args ->
+                        if (stateful.variableDeclarationMode) StateActionPair(declare, identifierDeclarationAction)
+                        else StateActionPair(
+                                trapState, getErrorAction("Not variable declaration mode, required an expression"))
+                    })
 
-            // Todo: Pass identifier as vararg in the transition
             declare.addTransition(Identifier(""), Transition { stateful, event, args ->
-                if (isVariableDeclared(stateful.tokens, stateful.currentIndex, (args[0] as Identifier).name))
-                    StateActionPair(trapState) // already declared
+                val identifier = stateful.tokens[stateful.currentIndex] as Identifier
+                if (isVariableDeclared(stateful.tokens, stateful.currentIndex, identifier.name))
+                    StateActionPair(trapState, getErrorAction("Variable is already declared"))
                 else StateActionPair(declared, identifierIndexSaver)
             })
 
             declared.addTransition(Comma(), declare)
-            declare.addTransition(Assign(), exp1)
-            declare.addTransition(Semicolon(), start)
+            declared.addTransition(Assign(), exp1, exp1Action)
+            declared.addTransition(Semicolon(), start)
 
-            exp1.addTransition(listOf(Comma(), Semicolon()), Transition { stateful, event, args ->
+            exp1.addTransitions(listOf(Comma().className(), Semicolon().className()), Transition { stateful, event, a ->
                 if (stateful.faultyExpression) StateActionPair(trapState)
                 else StateActionPair(if (event == Semicolon().className()) start else declare, identifierValueSaver)
             })
 
-            // Todo: Pass identifier as vararg in the transition
             start.addTransition(Identifier(""), Transition { stateful, event, args ->
-                if (isVariableDeclared(stateful.tokens, stateful.currentIndex, (args[0] as Identifier).name))
+                val identifier = stateful.tokens[stateful.currentIndex] as Identifier
+                if (isVariableDeclared(stateful.tokens, stateful.currentIndex, identifier.name))
                      StateActionPair(assign, identifierAssignmentAction)
-                else StateActionPair(trapState) // not declared
+                else StateActionPair(trapState, getErrorAction("Variable is not declared"))
             })
 
-            // Todo: Pass identifier as vararg in the transition
-            assign.addTransition(listOf(Assign(), PlusAssign(), MinusAssign(), DivideAssign(), MultiplyAssign()),
+            assign.addTransitions(listOf(Assign().className(), PlusAssign().className(),
+                    MinusAssign().className(), DivideAssign().className(), MultiplyAssign().className()),
                     Transition { stateful, event, args ->
                         if (event != Assign().className())
                             if (stateful.valuedIdentifier) StateActionPair(exp2, assignmentOperatorAction)
-                            else StateActionPair(trapState) // Needed value for identifier but nothing's there
+                            else StateActionPair(
+                                    trapState, getErrorAction("Variable doesn't have any value", ErrorType.Semantic))
                         else StateActionPair(exp2, assignmentOperatorAction)
                     })
 
-            assign.addTransition(listOf(PlusPlus(), MinusMinus()), Transition { stateful, event, args ->
-                if (stateful.identifierType == ValueType.INT)
-                    if (stateful.valuedIdentifier) StateActionPair(aUnionExp, aUnionExpressionAction)
-                    else StateActionPair(trapState) // Needed valued identifier
-                else StateActionPair(trapState) // Needed int to perform these operations on
-            })
+            assign.addTransitions(listOf(PlusPlus().className(), MinusMinus().className()),
+                    Transition { stateful, event, args ->
+                        if (stateful.identifierType == ValueType.INT)
+                            if (stateful.valuedIdentifier) StateActionPair(aUnionExp, aUnionExpressionAction)
+                            else StateActionPair(
+                                    trapState, getErrorAction("Variable doesn't have any value", ErrorType.Semantic))
+                        else StateActionPair(trapState, getErrorAction("Variable should be of Int type", ErrorType.Semantic))
+                    })
 
             exp2.addTransition(Semicolon(), Transition { stateful, event, args ->
                 if (stateful.faultyExpression) StateActionPair(trapState)
@@ -228,22 +254,25 @@ class ValidatorFSM {
 
             aUnionExp.addTransition(Semicolon(), start)
 
-            start.addTransition(listOf(PlusPlus(), MinusMinus()), bUnionExp, bUnionExpressionAction)
+            start.addTransitions(
+                    listOf(PlusPlus().className(), MinusMinus().className()), bUnionExp, bUnionExpressionAction)
 
             bUnionExp.addTransition(Identifier(""), Transition { stateful, event, args ->
                 val token = stateful.tokens[stateful.currentIndex]
                 if (token is Identifier)
                     if (token.type == ValueType.INT)
                         if (token.value.isNotBlank()) StateActionPair(unionIdentifier, identifierUnionExpression)
-                        else StateActionPair(trapState) // It should have value
-                    else StateActionPair(trapState) // It should be an int
-                else StateActionPair(trapState) // It should be identifier
+                        else StateActionPair(
+                                trapState, getErrorAction("Variable doesn't have any value", ErrorType.Semantic))
+                    else StateActionPair(
+                            trapState, getErrorAction("Variable should be of Int type", ErrorType.Semantic))
+                else StateActionPair(trapState, getErrorAction("Expected an identifier"))
             })
 
             unionIdentifier.addTransition(Semicolon(), start)
 
-            start.addTransition(listOf(WHILE(), IF()), conditionalFlow, flowSaverAction)
-            conditionalFlow.addTransition(ParenthesisOpen(), condition)
+            start.addTransitions(listOf(WHILE().className(), IF().className()), conditionalFlow, flowSaverAction)
+            conditionalFlow.addTransition(ParenthesisOpen(), condition, conditionalExpressionAction)
 
             condition.addTransition(ParenthesisClose(), Transition { stateful, event, args ->
                 if (stateful.faultyExpression) StateActionPair(trapState)
@@ -254,23 +283,33 @@ class ValidatorFSM {
 
             start.addTransition(ELSE(), Transition { stateful, event, args ->
                 if (stateful.elsePossible) StateActionPair(elseState, elseAction)
-                else StateActionPair(trapState) // Unexpected token: Else
+                else StateActionPair(trapState, getErrorAction("Else wasn't allowed here"))
             })
 
             elseState.addTransition(BraceOpen(), start, elseAdderAction)
 
             start.addTransition(BraceClose(), Transition { stateful, event, args ->
-                if (stateful.scopeStack.peek() is Multiple) StateActionPair(start, braceYourselfActionIsComing)
-                else StateActionPair(trapState) // Closed Brace wasn't allowed
+                if (stateful.scopeStack.isNotEmpty() && stateful.scopeStack.peek() is Multiple)
+                    StateActionPair(start, braceYourselfActionIsComing)
+                else StateActionPair(trapState, getErrorAction("\"}\" wasn't allowed here"))
             })
 
-//            return FSM.FSMBuilder<ValidatorStateful>()
-//                    .addState(stateS, true)
-//                    .addState(stateN)
-//                    .addState(stateO)
-//                    .build()
-
-            TODO()
+            return FSM.FSMBuilder<ValidatorStateful>()
+                    .addState(start, true)
+                    .addState(declare)
+                    .addState(declared)
+                    .addState(exp1)
+                    .addState(assign)
+                    .addState(exp2)
+                    .addState(aUnionExp)
+                    .addState(bUnionExp)
+                    .addState(unionIdentifier)
+                    .addState(conditionalFlow)
+                    .addState(condition)
+                    .addState(afterCondition)
+                    .addState(elseState)
+                    .addState(trapState)
+                    .build()
 
         }
 
@@ -289,7 +328,8 @@ class ValidatorFSM {
                 is Failure -> expressionResult
                 is Success -> {
                     val identifier = stateful.tokens[stateful.identifierIndex] as Identifier
-                    if (condition || stateful.operatorType is Assign) expressionResult
+                    if (condition || stateful.operatorType is Assign || identifier.type != ValueType.INT)
+                        expressionResult
                     else processAssignment(stateful.operatorType,
                             expressionResult as Success, identifier.value, identifier.line)
                 }
@@ -297,7 +337,7 @@ class ValidatorFSM {
 
         }
 
-        fun evaluate(expression: String) = ScriptEngineManager().getEngineByName("js").eval(expression) as String
+        fun evaluate(expression: String) = ScriptEngineManager().getEngineByName("js").eval(expression).toString()
 
         fun processAssignment(type: AssignmentOperator, result: Success, value: String, line: Int) = when (type) {
             is PlusAssign -> Success(Number("", evaluate(value + "+" + result.result)).number, result.endToken)
@@ -307,7 +347,7 @@ class ValidatorFSM {
                     if (evaluate(result.result).toInt() == 0)
                         Failure(CompileError("SEMANTIC ERROR: Division by zero at line $line"))
                     else Success(Number("", evaluate(value + "/" + result.result)).number, result.endToken)
-            else -> Failure(CompileError("WTF @ValidatorFSM::processComplexAssignment"))
+            else -> Failure(CompileError("WTF @ValidatorFSM::processComplexAssignment opeartor type: $type"))
         }
 
         fun isVariableDeclared(tokens: List<Token>, currentIndex: Int, id: String) =

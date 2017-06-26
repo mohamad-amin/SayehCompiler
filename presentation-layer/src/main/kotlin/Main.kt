@@ -17,7 +17,7 @@ fun main(args: Array<String>) {
     val returnValue = fileChooser.showOpenDialog(null)
     if (returnValue == JFileChooser.APPROVE_OPTION) {
         lexicalAnalyzer(fileChooser.selectedFile.path).forEach {
-            println(it.javaClass)
+            println(it::class.java)
         }
     }
 

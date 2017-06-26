@@ -36,7 +36,7 @@ class WordReader : Reader {
                     .build()
             CommentProcessor(commentRemover).start()
 
-            tempFile.readLines().map { it.replace("\\s+", "") }.forEachIndexed { index, line ->
+            tempFile.readLines().map { it.replace(Regex("\\s+"), " ") }.forEachIndexed { index, line ->
                 line.split(" ").filter(String::isNotBlank).forEach { words.add(Word(it, index)) }
             }
 

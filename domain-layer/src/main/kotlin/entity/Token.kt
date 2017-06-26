@@ -1,8 +1,12 @@
 package entity
 
+import java.io.File
+
 /**
  * Created by mohamadamin (torpedo.mohammadi@gmail.com) on 6/2/17.
  */
+
+inline fun <reified T : Any> T.className() = T::class.java.toString()
 
 object TokenConstants {
 
@@ -84,7 +88,50 @@ object TokenConstants {
 
 }
 
-sealed class Token(val word: String, val line: Int = -1)
+sealed class Token(val word: String, val line: Int = -1) {
+
+    fun typeName() = when (this.word) {
+        IF().word -> IF().className()
+        ELSE().word -> ELSE().className()
+        WHILE().word -> WHILE().className()
+        CHAR().word -> CHAR().className()
+        INT().word -> INT().className()
+        BOOL().word -> BOOL().className()
+        NULL().word -> NULL().className()
+        TRUE().word -> TRUE().className()
+        FALSE().word -> FALSE().className()
+        Assign().word -> Assign().className()
+        PlusAssign().word -> PlusAssign().className()
+        MinusAssign().word -> MinusAssign().className()
+        DivideAssign().word -> DivideAssign().className()
+        MultiplyAssign().word -> MultiplyAssign().className()
+        ModuloAssign().word -> ModuloAssign().className()
+        AndOperator().word -> AndOperator().className()
+        OrOperator().word -> OrOperator().className()
+        NotOperator().word -> NotOperator().className()
+        Equal().word -> Equal().className()
+        NotEqual().word -> NotEqual().className()
+        Bigger().word -> Bigger().className()
+        Smaller().word -> Smaller().className()
+        BiggerEqual().word -> BiggerEqual().className()
+        SmallerEqual().word -> SmallerEqual().className()
+        Plus().word -> Plus().className()
+        Minus().word -> Minus().className()
+        Multiply().word -> Multiply().className()
+        Divide().word -> Divide().className()
+        PlusPlus().word -> PlusPlus().className()
+        MinusMinus().word -> MinusMinus().className()
+        Comma().word -> Comma().className()
+        ParenthesisOpen().word -> ParenthesisOpen().className()
+        ParenthesisClose().word -> ParenthesisClose().className()
+        BraceOpen().word -> BraceOpen().className()
+        BraceClose().word -> BraceClose().className()
+        Colon().word -> Colon().className()
+        Semicolon().word -> Semicolon().className()
+        else -> "WTF @Token::typeName"
+    }
+
+}
 
     sealed class Keyword(value: String, line: Int = -1) : Token(value, line)
 
@@ -149,7 +196,16 @@ sealed class Token(val word: String, val line: Int = -1)
                  var memoryAddress: Int = -1): Token(if (number[0].isDigit()) "+" + number else number, line)
 
     class Identifier(val name: String, line: Int = -1, var registerAddress: Int = -1, var memoryAddress: Int = -1,
-                     var type: ValueType = ValueType.UNKNOWN, var value: String = ""): Token(name, line)
+                     var type: ValueType = ValueType.UNKNOWN, var value: String = ""): Token(name, line) {
+
+        override fun equals(other: Any?) =
+                other is Identifier && other.name == this.name
+
+        override fun hashCode(): Int {
+            return super.hashCode()
+        }
+
+    }
 
     class Character(val name: String, val char: String, line: Int = -1, var registerAddress: Int = -1,
                     var memoryAddress: Int = -1): Token(char, line)
@@ -157,3 +213,13 @@ sealed class Token(val word: String, val line: Int = -1)
     class Unknown(val text: String, line: Int = -1): Token(text, line)
 
 enum class ValueType { INT, BOOL, CHAR, UNKNOWN }
+
+fun main(args: Array<String>) {
+
+    val text = File("/home/mohamadamin/Desktop/f.c").readLines().filter { it.isNotBlank() }.map { line ->
+        val type = line.replace("  ", "").split(" ")[1]
+        "\t\t$type().word -> $type().className()"
+    }.joinToString("\n")
+    println(text)
+
+}

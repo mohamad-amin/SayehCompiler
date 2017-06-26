@@ -35,26 +35,27 @@ class BaseExpressionResolver(var tokens: List<Token>) {
 
     }
 
-    private fun interactBoolExpr(exp: List<Token>, nextToken: Token, startIndex: Int, expType: ValueType): ExpressionResult {
+    // Todo: Should not check type, should save and compare types
+    private fun interactBoolExpr(exp: List<Token>,
+                                 nextToken: Token, startIndex: Int, expType: ValueType): ExpressionResult {
+
+        val onlyBoolean = exp.size == 3 && exp[0] is Identifier && (exp[0] as Identifier).type == ValueType.BOOL
 
         exp.map { token ->
             if (token is Identifier) {
-                if (token.type == expType)
-                    if (token.value.isNotEmpty())
-                        when (expType) {
-                            ValueType.BOOL ->
-                                if (token.value == TokenConstants.Keyword.TRUE) TRUE(token.line) else FALSE(token.line)
-                            ValueType.CHAR -> Character(token.name, token.value, token.line)
-                            ValueType.INT -> Number(token.name, token.value, token.line)
-                            else -> {
-                                println("WTF @ExpressionResolver::interactBoolExpr")
-                                token
-                            }
+                if (token.value.isNotEmpty())
+                    when (token.type) {
+                        ValueType.BOOL ->
+                            if (token.value == TokenConstants.Keyword.TRUE) TRUE(token.line) else FALSE(token.line)
+                        ValueType.CHAR -> Character(token.name, token.value, token.line)
+                        ValueType.INT -> Number(token.name, token.value, token.line)
+                        else -> {
+                            println("WTF @ExpressionResolver::interactBoolExpr")
+                            token
                         }
-                    else return Failure(
-                            CompileError(ErrorType.Semantic, "Undefined variable", "required type: $expType", token))
+                    }
                 else return Failure(
-                        CompileError(ErrorType.Semantic, "Types do not match", "required type: $expType", token))
+                        CompileError(ErrorType.Semantic, "Undefined variable", "required type: $expType", token))
             } else token
         }
 
@@ -86,16 +87,25 @@ class BaseExpressionResolver(var tokens: List<Token>) {
                     }
                 } else {
 
-                    val endTokens = listOf<Token>(AndOperator(-1), OrOperator(-1),
-                            Equal(-1), NotEqual(-1), Bigger(-1), BiggerEqual(-1), Smaller(-1), SmallerEqual(-1))
+                    val endTokens = listOf<Token>(Equal(-1), NotEqual(-1),
+                            Bigger(-1), BiggerEqual(-1), Smaller(-1), SmallerEqual(-1))
 
-                    val firstExpressionResult = interact(startIndex, ValueType.INT, endTokens)
+                    var type = ValueType.INT
+                    var firstExpressionResult = interact(startIndex, type, endTokens)
+                    if (firstExpressionResult is Failure) {
+                        type = ValueType.CHAR
+                        firstExpressionResult = interact(startIndex, type, endTokens)
+                    }
+                    if (firstExpressionResult is Failure) {
+                        type = ValueType.BOOL
+                        firstExpressionResult = interact(startIndex, type, endTokens)
+                    }
                     return when (firstExpressionResult) {
                         is Failure -> firstExpressionResult
                         is Success -> {
                             val newStart = firstExpressionResult.endToken - startIndex
                             if (endTokens.any { it.javaClass == exp[newStart].javaClass }) {
-                                val secondResult = interact(newStart+1+startIndex, ValueType.INT, listOf(nextToken))
+                                val secondResult = interact(newStart+1+startIndex, type, listOf(nextToken))
                                 return when (secondResult) {
                                     is Failure -> secondResult
                                     is Success -> Success("true", secondResult.endToken)
@@ -127,6 +137,12 @@ class BaseExpressionResolver(var tokens: List<Token>) {
             Failure(CompileError(ErrorType.Syntax, "Unexpected Token", "required type: $expType", token))
 
     private fun checkSingleBoolExpr(token: Token, expType: ValueType, endToken: Int) = when(token) {
+        is Identifier ->
+            if (token.type == expType)
+                if (token.value.isNotEmpty())
+                    Success(token.value, endToken)
+                else Failure(CompileError(ErrorType.Semantic, "Undefined variable", "required type: $expType", token))
+            else Failure(CompileError(ErrorType.Semantic, "Types do not match", "required type: $expType", token))
         is TRUE -> Success(TokenConstants.Keyword.TRUE, endToken)
         is FALSE -> Success(TokenConstants.Keyword.FALSE, endToken)
         else -> Failure(CompileError(
@@ -138,24 +154,27 @@ class BaseExpressionResolver(var tokens: List<Token>) {
         var faultyExpression = false
         var failureResult: Failure = Failure(CompileError(ErrorType.Unknown, "", "", nextToken))
 
-        val expression = exp.joinToString(" ") { token ->
-            if (faultyExpression) token.word else when(token) {
-                is Identifier -> {
-                    if (token.type == expType)
-                        if (token.value.isNotEmpty()) token.value
-                        else {
-                            faultyExpression = true
-                            failureResult = Failure(CompileError(
-                                    ErrorType.Semantic, "Undefined variable", "required type: $expType", token))
-                            token.word
-                        }
+        val neatExp = exp.map { token ->
+            if (token is Identifier) {
+                if (token.type == expType)
+                    if (token.value.isNotEmpty()) Number("?", token.value)
                     else {
                         faultyExpression = true
                         failureResult = Failure(CompileError(
-                                ErrorType.Semantic, "Types do not match", "required type: $expType", token))
-                        token.word
+                                ErrorType.Semantic, "Undefined variable", "required type: $expType", token))
+                        token
                     }
+                else {
+                    faultyExpression = true
+                    failureResult = Failure(CompileError(
+                            ErrorType.Semantic, "Types do not match", "required type: $expType", token))
+                    token
                 }
+            } else token
+        }
+
+        val expression = neatExp.joinToString(" ") { token ->
+            if (faultyExpression) token.word else when(token) {
                 is Number -> token.number
                 is Operator -> token.word
                 is ParenthesisOpen -> token.word
@@ -171,7 +190,7 @@ class BaseExpressionResolver(var tokens: List<Token>) {
 
         return if (faultyExpression) failureResult
         else {
-            val validationResult = expressionValidator.validate(exp, nextToken)
+            val validationResult = expressionValidator.validate(neatExp, nextToken)
             when (validationResult) {
                 is Success -> processIntExpression(expression, startIndex + exp.size, exp[0].line)
                 is Failure -> validationResult
