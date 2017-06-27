@@ -173,14 +173,14 @@ sealed class Token(val word: String, val line: Int = -1) {
             class BiggerEqual(line: Int = -1): RelationalOperator(TokenConstants.Operator.RelationalOperator.BiggerEqual, line)
             class SmallerEqual(line: Int = -1): RelationalOperator(TokenConstants.Operator.RelationalOperator.SmallerEqual, line)
 
-        sealed class ArithmeticOperator(value: String, line: Int = -1): Operator(value, line)
+        sealed class ArithmeticOperator(value: String, line: Int = -1, val precedence: Int = -1): Operator(value, line)
 
-            class Plus(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Plus, line)
-            class Minus(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Minus, line)
-            class Multiply(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Multiply, line)
-            class Divide(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Divide, line)
-            class PlusPlus(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.PlusPlus, line)
-            class MinusMinus(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.MinusMinus, line)
+            class Plus(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Plus, line, 1)
+            class Minus(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Minus, line, 1)
+            class Multiply(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Multiply, line, 2)
+            class Divide(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.Divide, line, 2)
+            class PlusPlus(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.PlusPlus, line, 3)
+            class MinusMinus(line: Int = -1): ArithmeticOperator(TokenConstants.Operator.ArithmeticOperator.MinusMinus, line, 3)
 
     sealed class Punctuation(value: String, line: Int = -1): Token(value, line)
 

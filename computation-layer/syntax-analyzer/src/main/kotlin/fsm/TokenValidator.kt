@@ -52,6 +52,7 @@ class TokenValidator {
 
         return if (inTrapState(state)) { println(state.error); false }
             else if (fsm.getCurrentState(state).isEndState)
+            
             if (state.scopeStack.isEmpty()) true
             else {
                 Failure(CompileError("SYNTAX ERROR, extra open scope was found, required a" +
