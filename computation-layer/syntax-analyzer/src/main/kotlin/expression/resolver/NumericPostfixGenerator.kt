@@ -38,6 +38,7 @@ class NumericPostfixGenerator(val expression: List<Token>) {
                 while (opStack.isNotEmpty() && higherPrecedenceOnTop(opStack.peek(), it)) output add opStack.pop()
                 opStack push it
             }
+            else -> println("WTF @${className()}::getInfixFromTokens()")
         }}
 
         while (opStack.isNotEmpty()) output add opStack.pop()
