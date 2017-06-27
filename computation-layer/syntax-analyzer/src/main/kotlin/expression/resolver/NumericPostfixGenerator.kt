@@ -22,7 +22,7 @@ class NumericPostfixGenerator(val expression: List<Token>) {
     infix fun <T> ArrayList<T>.add(t: T) = add(t)
     infix fun <T> Stack<T>.push(t: T) = push(t)
 
-    fun getInfixFromTokens(): List<Token> {
+    fun getPostfixFromTokens(): List<Token> {
 
         val opStack = stackOf<Token>()
         val output = arrayListOf<Token>()
@@ -61,7 +61,7 @@ fun main(args: Array<String>) {
     val postfixGenerator = NumericPostfixGenerator(tokens)
 
 //    tokens.forEach { println("${it.word} -> ${it.javaClass}") }
-    println("The result:\n${postfixGenerator.getInfixFromTokens().joinToString(" ") { it.word }}")
+    println("The result:\n${postfixGenerator.getPostfixFromTokens().joinToString(" ") { it.word }}")
 
 
 }

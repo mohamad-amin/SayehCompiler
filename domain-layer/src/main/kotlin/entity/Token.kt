@@ -88,7 +88,7 @@ object TokenConstants {
 
 }
 
-sealed class Token(val word: String, val line: Int = -1) {
+sealed class Token(val word: String, val line: Int = -1, var index: Int = -1) {
 
     fun typeName() = when (this.word) {
         IF().word -> IF().className()

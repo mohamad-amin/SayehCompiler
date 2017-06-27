@@ -11,9 +11,9 @@ import expression.converter.IntConverter
  */
 class TokenConverter: Converter<Token> {
 
-    val intConverter = IntConverter()
-    val boolConverter = BoolConverter()
-    val charConverter = CharConverter()
+    private val intConverter = IntConverter()
+    private val boolConverter = BoolConverter()
+    private val charConverter = CharConverter()
 
     override fun convert(t: Token) = when (t) {
         is Number -> intConverter.convert(t.number.toInt())

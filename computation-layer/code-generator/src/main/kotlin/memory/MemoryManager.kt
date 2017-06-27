@@ -15,10 +15,22 @@ class MemoryManager {
     private val memory = Array(RAM_SIZE) { -1 }
     private val registerFile = Array(RF_SIZE) { -1 }
 
-    fun getNextEmptyRamSlot() = memory.first { it == -1 }
-    fun getNextEmptyRegister() = registerFile.first { it == -1 }
+    fun getNextEmptyRamSlot(tokenIndex: Int): Int {
+        val index = memory.indexOfFirst { it == -1 }
+        memory[index] = tokenIndex
+        return index
+    }
+
+    fun getNextEmptyRegister(tokenIndex: Int): Int {
+        val index = registerFile.indexOfFirst { it == -1 }
+        registerFile[index] = tokenIndex
+        return index
+    }
 
     fun freeRamSlot(slot: Int) { memory[slot] = -1 }
     fun freeRegister(slot: Int) { registerFile[slot] = -1 }
+
+    fun freeRamSlots(slots: List<Int>) { slots.forEach { memory[it] = -1 } }
+    fun freeRegisters(slots: List<Int>) { slots.forEach { registerFile[it] = -1 } }
 
 }
