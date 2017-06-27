@@ -20,11 +20,10 @@ class BaseExpressionResolver(var tokens: List<Token>) {
 
     fun interact(startIndex: Int, expressionType: ValueType, endTokens: List<Token>): ExpressionResult {
 
-        val neededTokens = tokens.subList(startIndex, tokens.size)
-        val expression = neededTokens.takeWhile { token -> endTokens.none { it.javaClass == token.javaClass } }
-        val nextToken = neededTokens[expression.size]
+        val expression = getNeededTokens(startIndex, endTokens)
+        val nextToken = tokens[startIndex + expression.size]
 
-        println("Expression: $expression") // Todo: Remove this line in final build
+//        println("Expression: $expression") // Todo: Remove this line in final build
 
         return when (expressionType) {
             ValueType.CHAR -> interactCharExpr(expression[0], startIndex, expressionType)
@@ -35,11 +34,22 @@ class BaseExpressionResolver(var tokens: List<Token>) {
 
     }
 
+    fun getNeededTokens(startIndex: Int, endTokens: List<Token>): List<Token> {
+        val neededTokens = tokens.subList(startIndex, tokens.size)
+        val op = endTokens.all { it.javaClass == ParenthesisClose().javaClass }
+        return if (op) {
+            var pars = 0
+            neededTokens.takeWhile { token ->
+                if (token is ParenthesisOpen) pars++
+                else if (token is ParenthesisClose) pars--
+                pars != -1
+            }
+        } else neededTokens.takeWhile { token -> endTokens.none { it.javaClass == token.javaClass } }
+    }
+
     // Todo: Should not check type, should save and compare types
     private fun interactBoolExpr(exp: List<Token>,
                                  nextToken: Token, startIndex: Int, expType: ValueType): ExpressionResult {
-
-        val onlyBoolean = exp.size == 3 && exp[0] is Identifier && (exp[0] as Identifier).type == ValueType.BOOL
 
         exp.map { token ->
             if (token is Identifier) {
@@ -87,7 +97,7 @@ class BaseExpressionResolver(var tokens: List<Token>) {
                     }
                 } else {
 
-                    val endTokens = listOf<Token>(Equal(-1), NotEqual(-1),
+                    val endTokens = listOf(Equal(-1), NotEqual(-1),
                             Bigger(-1), BiggerEqual(-1), Smaller(-1), SmallerEqual(-1))
 
                     var type = ValueType.INT
