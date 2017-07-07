@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/SayehCompiler.iml" filepath="$PROJECT_DIR$/.idea/modules/SayehCompiler.iml" />
+      <module fileurl="file://$PROJECT_DIR$/SayehCompiler.iml" filepath="$PROJECT_DIR$/SayehCompiler.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator.iml" group="code-generator" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator_main.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator_main.iml" group="code-generator" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator_test.iml" filepath="$PROJECT_DIR$/.idea/modules/computation-layer/code-generator/code-generator_test.iml" group="code-generator" />

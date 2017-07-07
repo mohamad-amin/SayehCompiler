@@ -56,15 +56,12 @@ class ExpressionCompiler(var tokens: List<Token>) {
     }
 
     fun interactBoolExpr(expression: List<Token>, startIndex: Int) = when (expression.size) {
-        1 -> {
-            val address = memory.getNextEmptyRegister(expression[0].index)
-            val code = "R$address <= ${converter.convert(expression[0])}"
-            ExpressionCode(code, startIndex+1, address, listOf(address))
-        }
+        1 -> getRegisterOfToken(expression[0], startIndex+1)
         2 -> {
-            val address = memory.getNextEmptyRegister(expression[0].index)
-            val code = "R$address <= ${converter.convert(expression[0])}\nR$address <= NOT R$address"
-            ExpressionCode(code, startIndex+1, address, listOf(address))
+            val registerExpression = getRegisterOfToken(expression[0])
+            val code = "${registerExpression.code}\n" +
+                    "R$ًً{registerExpression.address} <= NOT R${registerExpression.address}"
+            ExpressionCode(code, startIndex+2, registerExpression.address, registerExpression.disposables)
         }
         else -> {
 
@@ -74,14 +71,17 @@ class ExpressionCompiler(var tokens: List<Token>) {
             val localCompiler = ExpressionCompiler(expression)
             val first = localCompiler.compile(0, getValueType(expression[0]), endTokens)
             val operator = expression[first.nextIndex]
-//            println("Operator: ${operator.word}")
             val second = localCompiler.compile(first.nextIndex+1, getValueType(expression[first.nextIndex+1]), listOf())
 
-            val address = memory.getNextEmptyRegister(operator.index)
-            val finalCode = "${first.code}\n${second.code}\n" +
-                    "R$address <= R${first.address} ${operator.word} R${second.address}"
+            val finalCode = if (!memory.sameBlockedRegisters(first.address, second.address)) {
+                val movement = moveRegister(first.address, second.address, operator.index)
+                val resultCode = "R${second.address} <= R${movement.address} ${operator.word} R${second.address}"
+                memory.freeRegisters(movement.disposables)
+                "${first.code}\n${second.code}\n${movement.code}\n$resultCode"
+            } else "${first.code}\n${second.code}\n" +
+                    "R${second.address} <= R${first.address} ${operator.word} R${second.address}"
 
-            ExpressionCode(finalCode, second.nextIndex, address, listOf(address))
+            ExpressionCode(finalCode, second.nextIndex, second.address, listOf(second.address))
 
         }
     }
@@ -99,37 +99,80 @@ class ExpressionCompiler(var tokens: List<Token>) {
         }
     }
 
-    fun interactCharExpr(expression: List<Token>, startIndex: Int): ExpressionCode {
-        val address = memory.getNextEmptyRegister(expression[0].index)
-        val code = "R$address <= ${converter.convert(expression[0])}"
-        return ExpressionCode(code, startIndex+1, address, listOf(address))
-    }
+    fun interactCharExpr(expression: List<Token>, startIndex: Int) = getRegisterOfToken(expression[0], startIndex+1)
 
+    // Todo: maybe some improvements
     fun solveIntExpression(postfix: List<Token>, startIndex: Int): ExpressionCode {
         val token = postfix[startIndex]
         return when (token) {
             is ArithmeticOperator -> {
+
                 val first = solveIntExpression(postfix, startIndex+1)
                 val second = solveIntExpression(postfix, first.nextIndex)
-                val address = memory.getNextEmptyRegister(token.index)
-                memory.freeRegisters(first.disposables.plus(second.disposables))
-                val resultCode = "R$address <= R${first.address} ${token.word} R${second.address}"
-                val finalCode = "${first.code}\n${second.code}\n$resultCode"
-                ExpressionCode(finalCode, second.nextIndex, address, listOf(address))
+                memory.freeRamSlots(first.disposables, second.disposables)
+
+                if (!memory.sameBlockedRegisters(first.address, second.address)) {
+                    val movement = moveRegister(first.address, second.address, token.index)
+                    val resultCode = "R${second.address} <= R${second.address} ${token.word} R${movement.address}"
+                    val finalCode = "${first.code}\n${second.code}\n${movement.code}\n$resultCode"
+                    memory.freeRegisters(movement.disposables.plus(listOf(movement.address, first.address)))
+                    ExpressionCode(finalCode, second.nextIndex, second.address)
+                } else {
+                    val resultCode = "R${second.address} <= R${second.address} ${token.word} R${first.address}"
+                    val finalCode = "${first.code}\n${second.code}\n$resultCode"
+                    memory.freeRegister(first.address)
+                    ExpressionCode(finalCode, second.nextIndex, second.address)
+                }
+
             }
-            else -> {
+            else -> getRegisterOfToken(token, startIndex+1)
+        }
+    }
+
+    fun getRegisterOfToken(token: Token, nextAddress: Int = -1): ExpressionCode {
+        val converted = converter.convert(token)
+        return when (converted) {
+            is ConvertedValue -> {
                 val address = memory.getNextEmptyRegister(token.index)
-                ExpressionCode("R$address <= ${converter.convert(token)}", startIndex+1, address, listOf(address))
+                val code = moveImmediateValueToRegister(converted.value, address)
+                ExpressionCode(code, nextAddress, address, listOf(address))
+            }
+            is ConvertedRegister -> {
+                ExpressionCode("", nextAddress, converted.registerAddress)
+            }
+            is ConvertedMemory -> {
+                val address = memory.getNextEmptyRegister(token.index)
+                val code = moveMemoryToRegister(converted.memoryAddress, address)
+                ExpressionCode(code, nextAddress, address, listOf(address))
             }
         }
     }
+
+    fun moveRegister(from: Int, operand: Int, tokenIndex: Int): ExpressionCode {
+        val memoryAddress = memory.getNextEmptyRamSlot(tokenIndex)
+        val nextRegister = memory.getNextRegisterBeside(operand, tokenIndex)
+        memory.freeRegister(from)
+        memory.freeRamSlot(memoryAddress)
+        val code = "MEM[$memoryAddress] <= R$from\n" + memory.moveWpTo(
+                (converter.convert(Number("", nextRegister.toString())) as ConvertedValue).value.takeLast(8)) +
+                "\nR$nextRegister <= MEM[$memoryAddress]"
+        return ExpressionCode(code, -1, nextRegister, listOf(nextRegister))
+    }
+
+    fun moveImmediateValueToRegister(value: String, register: Int) =
+            "R$register(7:0) <= ${value.takeLast(8)}\n" +
+            "R$register(15:8) <= ${value.take(8)}"
+
+    fun moveMemoryToRegister(memoryAddress: Int, register: Int) =
+            "R$register <= MEM[$memoryAddress]"
 
 }
 
 // Todo: Remove this function in the final build
 fun main(args: Array<String>) {
 
-    val expression = "bool c = ( 1 * ( 2 ) == 4 * 5 / ( ( 2 ) ) )"
+//    val expression = "bool c = ( 1 * ( 2 ) == 4 * 5 / ( ( 2 ) ) )"
+    val expression = "bool c = ( 1 * ( 2 ) == 4 * 5 / ( ( 2 + 3 ) ) * 2 )"
     val tokenizer = WordTokenizer()
 
     tokenizer.words = expression.split(" ").map { Word(it, 1) }

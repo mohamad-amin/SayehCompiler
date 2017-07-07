@@ -8,7 +8,7 @@ class MemoryManager {
     companion object {
         val RAM_SIZE = 1024
         val RF_SIZE = 64
-        val WP = -1
+        val WP = 0
     }
 
     // Each item references to index of a token in the tokens list
@@ -23,7 +23,7 @@ class MemoryManager {
 
     fun getNextEmptyRegister(tokenIndex: Int): Int {
         val index = registerFile.indexOfFirst { it == -1 }
-        registerFile[index] = tokenIndex
+        registerFile[index] = if (tokenIndex == -1) Integer.MAX_VALUE else tokenIndex
         return index
     }
 
@@ -31,6 +31,26 @@ class MemoryManager {
     fun freeRegister(slot: Int) { registerFile[slot] = -1 }
 
     fun freeRamSlots(slots: List<Int>) { slots.forEach { memory[it] = -1 } }
+    fun freeRamSlots(vararg slots: List<Int>) { slots.forEach { list -> list.forEach{ memory[it] = -1 } } }
     fun freeRegisters(slots: List<Int>) { slots.forEach { registerFile[it] = -1 } }
+    fun freeRegisters(vararg slots: List<Int>) { slots.forEach { list -> list.forEach{ registerFile[it] = -1 } } }
+
+    fun sameBlockedRegisters(a: Int, b: Int) =
+            maxOf(a, b) - ((minOf(a, b) / 4) * 4) < 4
+
+    fun getNextRegisterBeside(register: Int, tokenIndex: Int): Int {
+        val startWp = register / 4
+        var newIndex = -1
+        for (i in 4*startWp..registerFile.size) {
+            if (registerFile[i] == -1 && i != register) {
+                newIndex = i
+                break
+            }
+        }
+        registerFile[newIndex] = if (tokenIndex == -1) Integer.MAX_VALUE else tokenIndex
+        return newIndex
+    }
+
+    fun moveWpTo(binaryValue: String) = "WP <= 000\nWP <= Wp + $binaryValue"
 
 }
