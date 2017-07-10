@@ -13,8 +13,6 @@ import org.statefulj.fsm.model.impl.StateImpl
 
 /**
  * Created by mohamadamin (torpedo.mohammadi@gmail.com) on 6/21/17.
- * Todo: Save failure result for trap state moves
- * Todo: Change currentIndex after onEvent call
  */
 class GeneratorFSM {
 
@@ -22,7 +20,6 @@ class GeneratorFSM {
             StateActionPairImpl<GeneratorStateful>(state, action)
 
     object States {
-        val trapState = "TRAP"
         val start = "Start"
         val declare = "Declare"
         val declared = "Declared"
@@ -174,7 +171,6 @@ class GeneratorFSM {
 
         fun getFSM(): FSM<GeneratorStateful> {
 
-            val trapState = StateImpl<GeneratorStateful>(States.trapState, false, true)
             val start = StateImpl<GeneratorStateful>(States.start, true)
             val declare = StateImpl<GeneratorStateful>(States.declare)
             val declared = StateImpl<GeneratorStateful>(States.declared)
@@ -221,8 +217,6 @@ class GeneratorFSM {
 
             unionIdentifier.addTransition(Semicolon(), start)
 
-            // Todo: here
-
             start.addTransitions(listOf(WHILE().className(), IF().className()), conditionalFlow, flowSaverAction)
             conditionalFlow.addTransition(ParenthesisOpen(), condition, conditionalExpressionAction)
 
@@ -250,7 +244,6 @@ class GeneratorFSM {
                     .addState(condition)
                     .addState(afterCondition)
                     .addState(elseState)
-                    .addState(trapState)
                     .build()
 
         }

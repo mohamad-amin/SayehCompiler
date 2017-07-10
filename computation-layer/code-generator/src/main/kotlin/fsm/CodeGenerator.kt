@@ -15,70 +15,23 @@ class TokenValidator {
 
     val fsm = GeneratorFSM.getFSM()
 
-    fun isValid(tokens: List<Token>): Boolean {
-
-        val state = ValidatorStateful(tokens)
-
+    fun isValid(tokens: List<Token>): String {
+        val state = GeneratorStateful(tokens)
         tokens.forEachIndexed { index, token ->
             if (index < state.currentIndex) return@forEachIndexed
-            if (inTrapState(state)) {
-                println(state.error)
-                return false
-            } else {
-
-                val events = (fsm.getCurrentState(state) as StateImpl).transitions.keys
-
-                val type = when (token) {
-                    is Number -> Number("", "1").className()
-                    is Character -> Character("", "").className()
-                    is Identifier -> Identifier("").className()
-                    is Unknown -> Unknown("").className()
-                    else -> token.typeName()
-                }
-
-                if (hasEvent(state, type)) {
-                    state.nextIndex = state.currentIndex + 1
-                    fsm.onEvent(state, type)
-                    state.currentIndex = state.nextIndex
-                } else {
-                    printStateEvent(fsm.getCurrentState(state) as StateImpl, token.javaClass.toString())
-                    println("Doesn't have $type")
-                    showFailure(events, token)
-                    return false
-                }
-
+            val type = when (token) {
+                is Number -> Number("", "1").className()
+                is Character -> Character("", "").className()
+                is Identifier -> Identifier("").className()
+                is Unknown -> Unknown("").className()
+                else -> token.typeName()
             }
+            state.nextIndex = state.currentIndex + 1
+            fsm.onEvent(state, type)
+            state.currentIndex = state.nextIndex
         }
-
-        return if (inTrapState(state)) { println(state.error); false }
-            else if (fsm.getCurrentState(state).isEndState)
-            
-            if (state.scopeStack.isEmpty()) true
-            else {
-                Failure(CompileError("SYNTAX ERROR, extra open scope was found, required a" +
-                        "\"}\"but reached the end of the file at line ${tokens.last().line}"))
-                false
-            }
-        else {
-            showFailure((fsm.getCurrentState(state) as StateImpl).transitions.keys, Unknown("EOF"))
-            false
-        }
-
+        return state.code
     }
-
-    fun inTrapState(stateful: ValidatorStateful) =
-            fsm.getCurrentState(stateful).isBlocking || stateful.faultyExpression
-
-    fun printStateEvent(state: StateImpl<ValidatorStateful>, event: String) {
-        println("state: ${state.name} and event: $event and possible events: ${state.transitions.keys.count()} -> ")
-//        state.transitions.keys.forEach { print("$it | ")}
-//        println()
-    }
-
-    fun hasEvent(state: ValidatorStateful, event: String) = fsm.getCurrentState(state).getTransition(event) != null
-
-    fun showFailure(events: MutableSet<String>, token: Token) =
-            println(Failure(CompileError(ErrorType.Syntax, "Unexpected Token", "required $events", token)))
 
 }
 
