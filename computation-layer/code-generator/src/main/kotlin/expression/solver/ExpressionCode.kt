@@ -1,7 +1,5 @@
 package expression.solver
 
-import entity.ValueType
-
 /**
  * Created by mohamadamin (torpedo.mohammadi@gmail.com) on 6/27/17.
  */

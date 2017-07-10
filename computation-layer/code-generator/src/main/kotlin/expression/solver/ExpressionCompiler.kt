@@ -12,7 +12,7 @@ import memory.MemoryManager
  */
 class ExpressionCompiler(var tokens: List<Token>) {
 
-    val memory = MemoryManager()
+    val memory = MemoryManager.instance
     val converter = TokenConverter()
 
     /**

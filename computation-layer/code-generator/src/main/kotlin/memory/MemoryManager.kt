@@ -3,12 +3,19 @@ package memory
 /**
  * Created by mohamadamin (torpedo.mohammadi@gmail.com) on 6/27/17.
  */
-class MemoryManager {
+class MemoryManager private constructor() {
 
     companion object {
+
         val RAM_SIZE = 1024
         val RF_SIZE = 64
         val WP = 0
+
+        var instance: MemoryManager
+        init {
+            instance = MemoryManager()
+        }
+
     }
 
     // Each item references to index of a token in the tokens list
@@ -16,7 +23,7 @@ class MemoryManager {
     private val registerFile = Array(RF_SIZE) { -1 }
 
     fun getNextEmptyRamSlot(tokenIndex: Int): Int {
-        val index = memory.indexOfFirst { it == -1 }
+        val index = memory.slice(600..RAM_SIZE).indexOfFirst { it == -1 } + 600
         memory[index] = tokenIndex
         return index
     }
