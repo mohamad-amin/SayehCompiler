@@ -29,6 +29,7 @@ class NumericPostfixGenerator(val expression: List<Token>) {
 
         expression.forEach { when (it) {
             is Number -> output add it
+            is Identifier -> output add it
             is ParenthesisOpen -> opStack push it
             is ParenthesisClose -> {
                 while (opStack.peek() !is ParenthesisOpen) output add opStack.pop()

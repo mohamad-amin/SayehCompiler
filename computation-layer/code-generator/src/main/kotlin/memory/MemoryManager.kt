@@ -48,7 +48,7 @@ class MemoryManager private constructor() {
     fun getNextRegisterBeside(register: Int, tokenIndex: Int): Int {
         val startWp = register / 4
         var newIndex = -1
-        for (i in 4*startWp..registerFile.size) {
+        for (i in (4*startWp)..registerFile.size) {
             if (registerFile[i] == -1 && i != register) {
                 newIndex = i
                 break

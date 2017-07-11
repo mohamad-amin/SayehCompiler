@@ -24,6 +24,7 @@ class ExpressionCompiler(var tokens: List<Token>) {
         expression.forEachIndexed { index, token -> token.index = startIndex + index }
 
 //        println("Expression: ${expression.joinToString(" ") { it.word }}") // Todo: Remove this line in final build
+//        println("Start index: $startIndex and valuetype: $expressionType")
 
         return when (expressionType) {
             ValueType.INT -> interactIntExpr(expression, startIndex)
@@ -101,8 +102,8 @@ class ExpressionCompiler(var tokens: List<Token>) {
 
     fun interactCharExpr(expression: List<Token>, startIndex: Int) = getRegisterOfToken(expression[0], startIndex+1)
 
-    // Todo: maybe some improvements
     fun solveIntExpression(postfix: List<Token>, startIndex: Int): ExpressionCode {
+//        println("Postfix: ${postfix.joinToString(" ") { it.word }}")
         val token = postfix[startIndex]
         return when (token) {
             is ArithmeticOperator -> {

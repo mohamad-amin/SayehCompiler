@@ -23,7 +23,7 @@ class GeneratorStateful(val tokens: List<Token>) {
 
     var expressionResult: ExpressionCode = ExpressionCode("", -1)
         set(value) {
-            nextIndex = value.nextIndex
+            if (value.nextIndex != -1) nextIndex = value.nextIndex
             field = value
         }
 

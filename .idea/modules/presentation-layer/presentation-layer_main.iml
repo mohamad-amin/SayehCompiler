@@ -65,6 +65,7 @@
     <orderEntry type="module" module-name="domain-layer_main" />
     <orderEntry type="module" module-name="lexical-analyzer_main" />
     <orderEntry type="module" module-name="syntax-analyzer_main" />
+    <orderEntry type="module" module-name="code-generator_main" />
     <orderEntry type="library" name="Gradle: org.jetbrains:annotations:13.0" level="project" />
     <orderEntry type="library" name="Gradle: com.github.ertugrulcetin:CommentRemover:1.2" level="project" />
     <orderEntry type="library" name="Gradle: org.statefulj:statefulj-fsm:3.0" level="project" />

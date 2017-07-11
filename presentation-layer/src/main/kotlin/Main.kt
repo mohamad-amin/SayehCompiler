@@ -1,3 +1,5 @@
+import fsm.CodeGenerator
+import fsm.TokenValidator
 import lexicalanalyzer.LexicalAnalyzer
 import javax.swing.JFileChooser
 import javax.swing.filechooser.FileSystemView
@@ -7,6 +9,8 @@ import javax.swing.filechooser.FileSystemView
  */
 
 val lexicalAnalyzer = LexicalAnalyzer()
+val tokenValidator = TokenValidator()
+val codeGenerator = CodeGenerator()
 
 fun main(args: Array<String>) {
 
@@ -16,8 +20,13 @@ fun main(args: Array<String>) {
 
     val returnValue = fileChooser.showOpenDialog(null)
     if (returnValue == JFileChooser.APPROVE_OPTION) {
-        lexicalAnalyzer(fileChooser.selectedFile.path).forEach {
-            println(it::class.java)
+        val tokens = lexicalAnalyzer(fileChooser.selectedFile.path)
+        tokens.forEach {
+//            println(it::class.java)
+        }
+        if (tokenValidator.isValid(tokens)) {
+            println("Valid syntax and semantic")
+            println(codeGenerator.isValid(tokens))
         }
     }
 

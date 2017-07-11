@@ -131,7 +131,7 @@ class GeneratorFSM {
                 is IfG -> {
                     val endOfScope = code.lines().size
                     val lines = code.lines().toMutableList()
-                    val afterShould = if (tokens[nextIndex] is ELSE) {
+                    val afterShould = if (tokens.size > nextIndex && tokens[nextIndex] is ELSE) {
                         code += "BUN XXXXX"
                         scopeStack.push(ElseG(endOfScope))
                         endOfScope + 1
@@ -164,7 +164,7 @@ class GeneratorFSM {
                 is IfG -> {
                     val lines = code.lines().size
                     topStack.afterIndex = lines + 1
-                    code += "\nBRZ ${lines + 2}\nBUN XXXXX"
+                    code += "\nBRZ ${Integer.toBinaryString(lines + 2).takeLast(8)}\nBUN XXXXX"
                 }
             }
         }}
@@ -185,7 +185,7 @@ class GeneratorFSM {
             val afterCondition = StateImpl<GeneratorStateful>(States.afterCondition)
             val elseState = StateImpl<GeneratorStateful>(States.elseState)
 
-            start.addTransitions(listOf(INT().className(), BOOL().className(), CHAR().className()), declared)
+            start.addTransitions(listOf(INT().className(), BOOL().className(), CHAR().className()), declare)
 
             declare.addTransition(Identifier(""), declared, identifierIndexSaver)
 
@@ -253,6 +253,7 @@ class GeneratorFSM {
                 val identifier = (tokens[identifierIndex] as Identifier).memoryAddress
                 val reg1 = memory.getNextEmptyRegister(identifierIndex)
                 val reg2 = memory.getNextEmptyRegister(identifierIndex + 1)
+                println("Getting regs $reg1 and $reg2")
                 code += "\n${moveMemoryToRegister(identifier, reg1)}\n" +
                         moveImmediateValueToRegister("0000000000000001", reg2) +
                         "\nR$reg1 <= R$reg1 ${if (unionExpressionType is PlusPlus) "+" else "-"} R$reg2" +
@@ -263,22 +264,30 @@ class GeneratorFSM {
 
         fun handleSingleExpression(stateful: GeneratorStateful, expResult: ExpressionCode): ExpressionCode {
             var code = expResult.code
-            val reg1 = memory.getNextRegisterBeside(expResult.nextIndex, stateful.identifierIndex)
+            val reg1 = memory.getNextRegisterBeside(expResult.address, stateful.identifierIndex)
             with (stateful) {
                 val identifier = (tokens[identifierIndex] as Identifier).memoryAddress
                 code += "\n${moveMemoryToRegister(identifier, reg1)}\n" +
-                        "\nR$reg1 <= R$reg1 $operatorType R${expResult.address}" +
+                        "R$reg1 <= R$reg1 ${getOperation(operatorType)} R${expResult.address}" +
                         "\nMEM[$identifier] <= R$reg1"
                 memory.freeRegisters(expResult.disposables.plus(reg1))
             }
             return ExpressionCode(code, expResult.nextIndex)
         }
 
+        fun getOperation(operator: AssignmentOperator) = when (operator) {
+            is PlusAssign -> TokenConstants.Operator.ArithmeticOperator.Plus
+            is MinusAssign -> TokenConstants.Operator.ArithmeticOperator.Minus
+            is MultiplyAssign -> TokenConstants.Operator.ArithmeticOperator.Multiply
+            is DivideAssign -> TokenConstants.Operator.ArithmeticOperator.Divide
+            else -> "WTF"
+        }
+
         fun handleConditionExpression(stateful: GeneratorStateful, expResult: ExpressionCode): ExpressionCode {
             var code = expResult.code
-            val reg1 = memory.getNextRegisterBeside(expResult.nextIndex, stateful.identifierIndex)
+            val reg1 = memory.getNextRegisterBeside(expResult.address, stateful.identifierIndex)
             with (stateful) {
-                code += "\n${moveImmediateValueToRegister("0000000000000001", reg1)}\n" +
+                code += "\n${moveImmediateValueToRegister("0000000000000001", reg1)}" +
                         "\nCMP R$reg1, R${expResult.address}"
                 memory.freeRegisters(expResult.disposables.plus(reg1))
             }
@@ -309,7 +318,7 @@ class GeneratorFSM {
             else
                 if (stateful.operatorType is Assign) {
                     val address = (stateful.tokens[stateful.identifierIndex] as Identifier).memoryAddress
-                    val code = expressionResult.code + "\nMEM[$address] <= ${expressionResult.address}"
+                    val code = expressionResult.code + "\nMEM[$address] <= R${expressionResult.address}"
                     memory.freeRegisters(expressionResult.disposables)
                     ExpressionCode(code, expressionResult.nextIndex)
                 } else handleSingleExpression(stateful, expressionResult)
